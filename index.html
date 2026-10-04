@@ -3,404 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AvaliaCursos - Gestão de Avaliações Dos Cursos EGEPI</title>
+    <title>AvaliaCursos - EGEPI</title>
     <link rel="stylesheet" href="visual.css">
+    <!-- Dependências do Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 </head>
 <body>
-    <div class="app">
-        <!-- MENU LATERAL -->
-        <aside class="sidebar" id="sidebar">
-            <div class="brand">
-                <div class="brand-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-                </div>
-                <div><strong>AvaliaCursos</strong><span>Gestão EGEPI</span></div>
+
+<div class="app">
+    <!-- MENU LATERAL -->
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">
+            <div class="brand-icon">E</div>
+            <div>
+                <strong>AvaliaCursos</strong>
+                <span>EGEPI - Sistema de Gestão</span>
             </div>
-            <nav class="menu">
-                <button class="menu-item active" data-page="dashboard"><span class="menu-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span><span>Visão Geral</span></button>
-                <button class="menu-item" data-page="cadastrar-avaliacao"><span class="menu-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span><span>Cadastrar Avaliação</span></button>
-                <button class="menu-item" data-page="evolucao-mensal"><span class="menu-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span><span>Evolução Mensal</span></button>
-                <button class="menu-item" data-page="cursos"><span class="menu-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span><span>Cursos</span></button>
-                <button class="menu-item" data-page="ministrantes"><span class="menu-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span>Ministrantes</span></button>
-                <button class="menu-item" data-page="avaliacoes"><span class="menu-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span><span>Avaliações</span></button>
-                <button class="menu-item" data-page="gerencias"><span class="menu-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span><span>Gerências</span></button>
-            </nav>
-        </aside>
+        </div>
+        <nav class="menu">
+            <button class="menu-item active" onclick="mudarAba('pageVisaoGeral', this)">Visão Geral</button>
+            <button class="menu-item" onclick="mudarAba('pageCursos', this)">Cursos</button>
+            <button class="menu-item" onclick="mudarAba('pageAvaliacoes', this)">Avaliações</button>
+            <button class="menu-item" onclick="mudarAba('pageGerencias', this)">Gerências</button>
+        </nav>
+        <button class="menu-item logout-button" onclick="alert('Saindo do sistema...')">Sair do Sistema</button>
+    </aside>
 
-        <!-- ÁREA PRINCIPAL -->
-        <main class="main-content">
-            <header class="topbar">
-                <button class="toggle-sidebar-btn" id="btnToggleSidebar" title="Recolher/Expandir Menu">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-                </button>
-                <div class="system-status"><span class="status-dot"></span>Sistema ativo</div>
-            </header>
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="main-content">
+        <div class="topbar">
+            <div>
+                <!-- BOTÃO PARA OCULTAR O MENU -->
+                <button id="btnToggleMenu" class="secondary-button" onclick="toggleMenu()">☰ Ocultar/Mostrar Menu</button>
+            </div>
+            <div class="system-status">
+                <div class="status-dot"></div> Sistema Online (Firebase)
+            </div>
+        </div>
 
-            <!-- 1. PÁGINA: VISÃO GERAL -->
-            <section class="page active" id="page-dashboard">
-                <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                    <div><h1>Painel de Avaliação de Cursos</h1><p>Visão geral e desempenho estratégico.</p></div>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <span style="font-size: 13px; color: #64748b;">Mês:</span>
-                        <select id="seletorMesVisaoGeral" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1;"></select>
-                    </div>
-                </div>
+        <!-- PÁGINA: VISÃO GERAL -->
+        <section id="pageVisaoGeral" class="page active">
+            <div class="page-header">
+                <h1>Visão Geral</h1>
+                <p>Resumo dos indicadores do sistema.</p>
+            </div>
+            <div class="stats-cards-row" id="cardsVisaoGeral">
+                <!-- Preenchido via JS -->
+            </div>
+        </section>
 
-                <h3 class="section-subtitle">NOTAS DO MÊS SELECIONADO</h3>
-                <div class="dashboard-grid" style="margin-bottom: 25px;">
-                    <div class="panel-card">
-                        <div class="panel-title"><h2>Médias Gerais</h2></div>
-                        <div class="score-list">
-                            <div class="score-row"><span>Satisfação</span><strong id="vgSatMes">—</strong></div>
-                            <div class="score-row"><span>Organização</span><strong id="vgOrgMes">—</strong></div>
-                            <div class="score-row"><span>Ministrantes</span><strong id="vgMinMes">—</strong></div>
-                        </div>
-                    </div>
-                    <div class="panel-card">
-                        <div class="panel-title" style="display: flex; justify-content: space-between; align-items: center;">
-                            <h2>Por Gerência</h2>
-                            <button class="primary-button" style="padding: 6px 12px; font-size: 12px;" onclick="document.querySelector('[data-page=cadastrar-avaliacao]').click()">+ Lançamento Rápido</button>
-                        </div>
-                        <div id="vgResumoGerenciaMes" class="score-list"></div>
-                    </div>
-                </div>
+        <!-- PÁGINA: CURSOS -->
+        <section id="pageCursos" class="page">
+            <div class="page-header">
+                <h1>Gestão de Cursos</h1>
+                <p>Cadastre e gerencie os cursos e seus ministrantes.</p>
+            </div>
+            <button class="primary-button" style="margin-bottom: 20px;" onclick="abrirModal('modalCadastrarCurso')">+ Novo Curso</button>
+            
+            <div class="course-cards-container" id="listaCursos">
+                <!-- Preenchido via JS -->
+            </div>
+        </section>
 
-                <h3 class="section-subtitle" id="tituloNotasTotaisData">NOTAS TOTAIS (ACUMULADO)</h3>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
-                    <div class="panel-card"><div class="panel-title"><h2>Médias Gerais - Acumulado</h2></div><div style="height: 250px; width: 100%;"><canvas id="graficoBarrasVisaoGeral"></canvas></div></div>
-                    <div class="panel-card">
-                        <div class="panel-title"><h2>Métricas Condensadas</h2></div>
-                        <div class="score-list">
-                            <div class="score-row"><span>Cursos Totais</span><strong id="vgTotalCursos">0</strong></div>
-                            <div class="score-row"><span>Total de Ministrantes Únicos</span><strong id="vgTotalMinistrantes">0</strong></div>
-                            <div class="score-row"><span>Total de Respostas Recebidas</span><strong id="vgTotalAvaliacoes">0</strong></div>
-                        </div>
-                    </div>
+        <!-- PÁGINA: AVALIAÇÕES -->
+        <section id="pageAvaliacoes" class="page">
+            <div class="page-header">
+                <h1>Avaliações e Comentários</h1>
+                <p>Acompanhe o feedback e edite os comentários.</p>
+            </div>
+            <div class="panel-card">
+                <div class="panel-title">
+                    <h2>Comentários Recentes</h2>
                 </div>
-            </section>
+                <!-- CAIXA COM ROLAGEM INDEPENDENTE PARA COMENTÁRIOS -->
+                <div class="caixa-rolagem-comentarios" id="listaComentarios">
+                    <!-- Preenchido via JS -->
+                </div>
+            </div>
+        </section>
 
-            <!-- 2. PÁGINA: CADASTRAR AVALIAÇÃO COMPLETA -->
-            <section class="page" id="page-cadastrar-avaliacao">
-                <div class="page-header"><div><h1>Cadastrar Avaliação e Curso</h1><p>Registre o curso, notas e (se houver) os ministrantes.</p></div></div>
-                <form id="formCadastrarAvaliacaoCompleta">
-                    
-                    <div class="panel-card form-section-block">
-                        <div class="form-section-title">Bloco 1: Informações do Curso</div>
-                        <div class="form-group"><label>Nome do curso *</label><input type="text" id="cadCursoNome" required></div>
-                        <div class="form-group"><label>Gerência *</label><select id="cadCursoGerencia" required></select></div>
-                        <div class="form-row">
-                            <div class="form-group"><label>Data de Início *</label><input type="date" id="cadCursoDataInicio" required></div>
-                            <div class="form-group"><label>Data de Fim *</label><input type="date" id="cadCursoDataFim" required></div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group"><label>Inscritos</label><input type="number" id="cadCursoInscritos" min="0" placeholder="0"></div>
-                            <div class="form-group"><label>Certificados</label><input type="number" id="cadCursoCertificados" min="0" placeholder="0"></div>
-                        </div>
-                        <div class="form-group"><label>Observações do Curso (Opcional)</label><textarea id="cadCursoObservacoes" rows="2" placeholder="Ex: Curso adiado devido a..."></textarea></div>
-                    </div>
+        <!-- PÁGINA: GERÊNCIAS -->
+        <section id="pageGerencias" class="page">
+            <div class="page-header">
+                <h1>Gerências</h1>
+                <p>Gerencie as gerências cadastradas.</p>
+            </div>
+            <div class="form-row" style="margin-bottom: 20px;">
+                <div class="form-group" style="flex: 1;">
+                    <input type="text" id="novaGerenciaNome" placeholder="Nome da Nova Gerência">
+                </div>
+                <button class="primary-button" onclick="salvarGerencia()">Cadastrar Gerência</button>
+            </div>
+            <div class="management-grid" id="listaGerencias">
+                <!-- Preenchido via JS -->
+            </div>
+        </section>
+    </main>
+</div>
 
-                    <div class="panel-card form-section-block">
-                        <div class="form-section-title">Bloco 2: Avaliações do Curso (Notas)</div>
-                        <div class="form-group" style="max-width: 250px;"><label>Quantidade total de respostas *</label><input type="number" id="cadAvaliacaoRespostas" min="1" required></div>
-
-                        <!-- ORGANIZAÇÃO PRIMEIRO -->
-                        <div class="rating-box" style="margin-top: 15px;">
-                            <div class="rating-header"><div><h3>Organização</h3></div><label class="switch"><input type="checkbox" id="cadAtivarOrg" checked><span class="slider"></span></label></div>
-                            <div id="cadCampoOrganizacao">
-                                <div class="votes-input-group">
-                                    <div class="vote-col"><label>⭐ 1</label><input type="number" id="cadOrgNota1" class="calc-cadOrg" min="0"></div>
-                                    <div class="vote-col"><label>⭐⭐ 2</label><input type="number" id="cadOrgNota2" class="calc-cadOrg" min="0"></div>
-                                    <div class="vote-col"><label>⭐⭐⭐ 3</label><input type="number" id="cadOrgNota3" class="calc-cadOrg" min="0"></div>
-                                    <div class="vote-col"><label>⭐⭐⭐⭐ 4</label><input type="number" id="cadOrgNota4" class="calc-cadOrg" min="0"></div>
-                                    <div class="vote-col"><label>⭐⭐⭐⭐⭐ 5</label><input type="number" id="cadOrgNota5" class="calc-cadOrg" min="0"></div>
-                                </div>
-                                <div class="resultado-preview"><span>Média: <strong id="cadOrgMediaCalc">0.00</strong></span><span id="cadOrgStatusCalc" class="badge-status">Aguardando</span></div>
-                            </div>
-                        </div>
-
-                        <!-- SATISFAÇÃO -->
-                        <div class="rating-box" style="margin-top: 15px;">
-                            <div class="rating-header"><div><h3>Satisfação Geral</h3></div><label class="switch"><input type="checkbox" id="cadAtivarSat" checked><span class="slider"></span></label></div>
-                            <div id="cadCampoSatisfacao">
-                                <div class="votes-input-group">
-                                    <div class="vote-col"><label>⭐ 1</label><input type="number" id="cadSatNota1" class="calc-cadSat" min="0"></div>
-                                    <div class="vote-col"><label>⭐⭐ 2</label><input type="number" id="cadSatNota2" class="calc-cadSat" min="0"></div>
-                                    <div class="vote-col"><label>⭐⭐⭐ 3</label><input type="number" id="cadSatNota3" class="calc-cadSat" min="0"></div>
-                                    <div class="vote-col"><label>⭐⭐⭐⭐ 4</label><input type="number" id="cadSatNota4" class="calc-cadSat" min="0"></div>
-                                    <div class="vote-col"><label>⭐⭐⭐⭐⭐ 5</label><input type="number" id="cadSatNota5" class="calc-cadSat" min="0"></div>
-                                </div>
-                                <div class="resultado-preview"><span>Média: <strong id="cadSatMediaCalc">0.00</strong></span><span id="cadSatStatusCalc" class="badge-status">Aguardando</span></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- MINISTRANTES (OPCIONAL) -->
-                    <div class="panel-card form-section-block">
-                        <div class="form-section-title" style="display: flex; justify-content: space-between; align-items: center; border: none; padding: 0;">
-                            <span>Bloco 3: Ministrantes (Opcional)</span>
-                            <div style="font-size: 13px; font-weight: normal; color: #475569; display: flex; align-items: center; gap: 8px;">
-                                O curso teve ministrantes? 
-                                <label class="switch"><input type="checkbox" id="toggleTeveMinistrantesCad" checked><span class="slider"></span></label>
-                            </div>
-                        </div>
-
-                        <div id="areaMinistrantesCad" style="margin-top: 15px; border-top: 1px solid #cbd5e1; padding-top: 15px;">
-                            <div class="form-group">
-                                <label>Selecione os ministrantes (Ordem Alfabética)</label>
-                                <div id="selecionadosCadMinistrantes" class="selected-list"></div>
-                                <div class="add-inline" style="margin-top: 10px;">
-                                    <select id="cadMinSelect"></select>
-                                    <button type="button" class="secondary-button" onclick="adicionarMinistranteCadastrarAvaliacao()">Adicionar</button>
-                                    <button type="button" class="primary-button" onclick="abrirModalMinistrante()" style="padding: 0 12px; font-size: 20px;" title="Criar Novo Ministrante">+</button>
-                                </div>
-                            </div>
-                            <div class="rating-box" style="margin-top: 15px;">
-                                <div class="rating-header"><div><h3>Avaliação dos Ministrantes</h3></div></div>
-                                <div id="cadNotasMinistrantesContainer"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div style="margin-top: 20px; text-align: right;"><button type="submit" class="primary-button" style="padding: 12px 24px; font-size: 15px;">Salvar Lançamento Completo</button></div>
-                </form>
-            </section>
-
-            <!-- 3. EVOLUÇÃO MENSAL -->
-            <section class="page" id="page-evolucao-mensal">
-                <div id="visaoGeralDashboard">
-                    <div class="page-header"><div><h1>Evolução Mensal de Desempenho</h1></div></div>
-                    <div class="panel-card" style="margin-bottom: 20px;">
-                        <div class="panel-title" style="display: flex; justify-content: space-between; align-items: center;">
-                            <div><h2>Gráfico de Evolução</h2></div>
-                            <div style="display: flex; gap: 10px;">
-                                <select id="seletorMesDetalhe" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1;"></select>
-                                <button class="primary-button" onclick="verDetalhesDoMes()">Ver Detalhes</button>
-                            </div>
-                        </div>
-                        <div style="height: 320px; width: 100%;"><canvas id="graficoEvolucaoMensal"></canvas></div>
-                    </div>
-                </div>
-                <div id="visaoDetalhadaMes" style="display: none;">
-                    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
-                        <div><h1 id="tituloDetalhamentoMes">Detalhamento</h1></div>
-                        <button class="secondary-button" onclick="voltarParaVisaoGeral()">← Voltar</button>
-                    </div>
-                    <div id="tabelaCursosMesDetalhe"></div>
-                </div>
-            </section>
-
-            <!-- 4. PÁGINA: CURSOS -->
-            <section class="page" id="page-cursos">
-                <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                    <div><h1>Cursos</h1></div>
-                    <div style="display: flex; gap: 10px;">
-                        <select id="seletorMesCursos" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1;"></select>
-                        <button class="primary-button" onclick="abrirModalCurso()">+ Novo curso (Só Cadastro)</button>
-                    </div>
-                </div>
-                <div id="listaCursosCards" class="course-cards-container"></div>
-            </section>
-
-            <!-- 5. PÁGINA: MINISTRANTES -->
-            <section class="page" id="page-ministrantes">
-                <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
-                    <div><h1>Visão Geral Ministrantes</h1></div>
-                    <button class="secondary-button" onclick="abrirModalMinistrante()">+ Novo ministrante</button>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
-                    <div class="panel-card"><div class="panel-title"><h2>Evolução Geral</h2></div><div style="height: 250px;"><canvas id="graficoEvolucaoGeralMinistrantes"></canvas></div></div>
-                    <div class="panel-card"><div class="panel-title"><h2>Ranking (Top 5)</h2></div><div id="rankingMinistrantesLista" class="ranking-list"></div></div>
-                </div>
-                <div class="panel-card"><div class="panel-title"><h2>Todos os Ministrantes</h2></div><div id="listaMinistrantesCards" class="ministrantes-grid"></div></div>
-            </section>
-
-            <!-- 6. PÁGINA: AVALIAÇÕES (ABAS COMPLETAS) -->
-            <section class="page" id="page-avaliacoes">
-                <div class="page-header"><div><h1>Avaliações Analíticas</h1></div></div>
-                <div class="sub-nav-tabs">
-                    <button class="sub-nav-tab active" data-subpage="av-organizacao">Organização</button>
-                    <button class="sub-nav-tab" data-subpage="av-ministrantes">Ministrantes</button>
-                    <button class="sub-nav-tab" data-subpage="av-satisfacao">Satisfação</button>
-                    <button class="sub-nav-tab" data-subpage="av-comentarios">Comentários e Obs</button>
-                </div>
-
-                <div class="sub-page active" id="subpage-av-organizacao"><div id="conteudo-av-org" class="table-wrapper"></div></div>
-                <div class="sub-page" id="subpage-av-ministrantes"><div id="conteudo-av-min" class="table-wrapper"></div></div>
-                <div class="sub-page" id="subpage-av-satisfacao"><div id="conteudo-av-sat" class="table-wrapper"></div></div>
-                
-                <div class="sub-page" id="subpage-av-comentarios">
-                    <div style="display: grid; grid-template-columns: 320px 1fr; gap: 20px;">
-                        <div class="panel-card" style="height: fit-content;">
-                            <div class="panel-title"><h2>Incluir Comentário</h2></div>
-                            <form id="formAdicionarComentario">
-                                <input type="hidden" id="comentIdEdit">
-                                <div class="form-group"><label>Curso *</label><select id="comentCursoSelect" required></select></div>
-                                <div class="form-group"><label>Categoria</label><select id="comentTipoSelect"><option>Geral</option><option>Satisfação</option><option>Organização</option><option>Ministrantes</option></select></div>
-                                <div class="form-group"><label>Comentário *</label><textarea id="comentTextoInput" rows="4" required></textarea></div>
-                                <button type="submit" class="primary-button full-width" id="btnSalvarComentario">Salvar</button>
-                                <button type="button" class="secondary-button full-width" id="btnCancelarEdicao" style="display:none; margin-top:10px;" onclick="cancelarEdicaoComentario()">Cancelar</button>
-                            </form>
-                        </div>
-                        <div class="panel-card">
-                            <div class="panel-title"><h2>Comentários Registrados</h2><p>Pode rolar a lista abaixo</p></div>
-                            <div id="feedComentarios" class="comments-feed"></div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 7. PÁGINA: GERÊNCIAS -->
-            <section class="page" id="page-gerencias">
-                <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
-                    <div><h1>Gerências</h1></div>
-                    <button class="secondary-button" onclick="abrirModalGerencia()">+ Nova gerência</button>
-                </div>
-                <div id="cardsGerenciasConsolidados" class="management-grid" style="margin-bottom: 25px;"></div>
-                <div style="display: grid; grid-template-columns: 1fr 340px; gap: 20px; margin-bottom: 25px;">
-                    <div class="panel-card"><div class="panel-title"><h2>Evolução por Mês</h2></div><div style="height: 250px;"><canvas id="graficoEvolucaoGerenciasLadoALado"></canvas></div></div>
-                    <div class="panel-card"><div class="panel-title"><h2>Métricas</h2></div><div id="metGerenciasInfo"></div></div>
-                </div>
-                <div class="panel-card"><div class="panel-title"><h2>Histórico Detalhado</h2></div><div id="tabelaCursosPorGerenciaHistorico" class="table-wrapper"></div></div>
-            </section>
-        </main>
-    </div>
-
-    <!-- MODAIS DO SISTEMA -->
-    <div class="modal-overlay" id="modalCurso">
-        <div class="modal">
-            <div class="modal-header"><h2>Novo curso (Somente Cadastro)</h2><button class="close-button" onclick="fecharModal('modalCurso')">×</button></div>
-            <form id="formCurso">
-                <div class="form-group"><label>Nome *</label><input type="text" id="cursoNome" required></div>
-                <div class="form-group"><label>Gerência *</label><select id="cursoGerencia" required></select></div>
-                <div class="form-row">
-                    <div class="form-group"><label>Início *</label><input type="date" id="cursoDataInicio" required></div>
-                    <div class="form-group"><label>Fim *</label><input type="date" id="cursoDataFim" required></div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group"><label>Inscritos</label><input type="number" id="cursoInscritos" min="0"></div>
-                    <div class="form-group"><label>Certificados</label><input type="number" id="cursoCertificados" min="0"></div>
-                </div>
-                <div class="form-group"><label>Observações</label><textarea id="cursoObservacoesMod" rows="2"></textarea></div>
-                
-                <div class="form-group" style="margin-top: 15px; border-top: 1px solid #e2e8f0; padding-top: 15px;">
-                    <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-                        Este curso possui ministrantes?
-                        <div class="switch"><input type="checkbox" id="toggleTeveMinistrantesCurso" checked><span class="slider"></span></div>
-                    </label>
-                </div>
-                <div class="form-group" id="areaMinistrantesCurso" style="margin-top: 10px;">
-                    <label>Selecione (Ordem Alfabética)</label>
-                    <div id="selecionadosMinistrantes" class="selected-list"></div>
-                    <div class="add-inline">
-                        <select id="cursoMinistranteSelect"></select>
-                        <button type="button" class="secondary-button" onclick="adicionarMinistranteAoCurso()">Adicionar</button>
-                    </div>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="secondary-button" onclick="fecharModal('modalCurso')">Cancelar</button>
-                    <button type="submit" class="primary-button">Salvar</button>
-                </div>
-            </form>
+<!-- MODAL CADASTRAR CURSO -->
+<div class="modal-overlay" id="modalCadastrarCurso">
+    <div class="modal modal-large">
+        <div class="modal-header">
+            <h2>Cadastrar/Editar Curso</h2>
+            <button class="close-button" onclick="fecharModal('modalCadastrarCurso')">×</button>
+        </div>
+        <div class="form-group">
+            <label>Nome do Curso</label>
+            <input type="text" id="cursoNome">
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Data de Início</label>
+                <input type="date" id="cursoDataInicio">
+            </div>
+            <div class="form-group">
+                <label>Data de Término</label>
+                <input type="date" id="cursoDataTermino">
+            </div>
+        </div>
+        <!-- CAMPO DE OBSERVAÇÃO ADICIONADO AQUI -->
+        <div class="form-group">
+            <label>Observações do Curso</label>
+            <textarea id="cursoObservacoes" rows="3" placeholder="Insira alguma observação sobre o curso (opcional)..."></textarea>
+        </div>
+        <div class="form-group">
+            <label>Adicionar Ministrante ao Curso (Opcional)</label>
+            <div class="add-inline">
+                <!-- CAMPO QUE FORÇA MAIÚSCULA VIA CSS (E JS) -->
+                <input type="text" id="novoMinistranteCursoNome" class="input-maiusculo" placeholder="NOME DO MINISTRANTE">
+                <button class="secondary-button" onclick="adicionarMinistranteNoCadastro()">Adicionar</button>
+            </div>
+            <div class="selected-list" id="listaMinistrantesCadastro" style="margin-top: 10px;"></div>
+        </div>
+        <div class="modal-actions">
+            <button class="secondary-button" onclick="fecharModal('modalCadastrarCurso')">Cancelar</button>
+            <button class="primary-button" onclick="salvarCurso()">Salvar Curso</button>
         </div>
     </div>
+</div>
 
-    <!-- MODAL EDITAR -->
-    <div class="modal-overlay" id="modalEditarCurso">
-        <div class="modal modal-large">
-            <div class="modal-header"><div><h2>Editar Curso e Avaliação</h2></div><button class="close-button" onclick="fecharModal('modalEditarCurso')">×</button></div>
-            <form id="formEditarCurso">
-                <input type="hidden" id="editarCursoId">
-                <div class="form-group"><label>Nome do curso *</label><input type="text" id="editarCursoNome" required></div>
-                <div class="form-group"><label>Gerência *</label><select id="editarCursoGerencia" required></select></div>
-                <div class="form-row">
-                    <div class="form-group"><label>Data de Início *</label><input type="date" id="editarCursoDataInicio" required></div>
-                    <div class="form-group"><label>Data de Fim *</label><input type="date" id="editarCursoDataFim" required></div>
-                </div>
-                <div class="form-group"><label>Observações do Curso</label><textarea id="editarCursoObservacoes" rows="2"></textarea></div>
+<!-- MODAL CADASTRAR AVALIAÇÃO -->
+<div class="modal-overlay" id="modalCadastrarAvaliacao">
+    <div class="modal modal-large">
+        <div class="modal-header">
+            <h2 id="tituloAvaliacaoModal">Avaliar Curso</h2>
+            <button class="close-button" onclick="fecharModal('modalCadastrarAvaliacao')">×</button>
+        </div>
+        <input type="hidden" id="idCursoAvaliacao">
+        
+        <!-- GERÊNCIA COMO CAIXA DE SELEÇÃO -->
+        <div class="form-group">
+            <label>Sua Gerência</label>
+            <select id="avaliacaoGerencia">
+                <!-- Preenchido via JS -->
+            </select>
+        </div>
 
-                <div style="margin-top: 15px; border-top: 1px solid #e2e8f0; padding-top: 15px;">
-                    <label style="font-weight: 700; color: #4f46e5; display: block; margin-bottom: 10px;">Notas Registradas</label>
-                    <div class="form-group" style="max-width: 200px;"><label>Total de Respostas</label><input type="number" id="editarAvaliacaoRespostas" min="1" required></div>
+        <!-- ORGANIZAÇÃO VEM ANTES DOS MINISTRANTES -->
+        <div class="rating-box">
+            <div class="rating-header">
+                <strong>1. Avalie a Organização do Curso (1 a 5)</strong>
+            </div>
+            <div class="votes-input-group">
+                <div class="vote-col"><label>Relevância</label><input type="number" min="1" max="5" id="notaOrgRelevancia"></div>
+                <div class="vote-col"><label>Carga Horária</label><input type="number" min="1" max="5" id="notaOrgCarga"></div>
+                <div class="vote-col"><label>Conteúdo</label><input type="number" min="1" max="5" id="notaOrgConteudo"></div>
+                <div class="vote-col"><label>Material</label><input type="number" min="1" max="5" id="notaOrgMaterial"></div>
+                <div class="vote-col"><label>Infraestrutura</label><input type="number" min="1" max="5" id="notaOrgInfra"></div>
+            </div>
+        </div>
 
-                    <!-- ORGANIZAÇÃO PRIMEIRO -->
-                    <div class="rating-box" style="margin-top: 10px;">
-                        <div class="rating-header"><div><h3>Organização</h3></div><label class="switch"><input type="checkbox" id="editarAtivarOrg" checked><span class="slider"></span></label></div>
-                        <div id="editarCampoOrganizacao">
-                            <div class="votes-input-group">
-                                <div class="vote-col"><label>1</label><input type="number" id="edtOrgNota1" class="calc-edtOrg" min="0"></div>
-                                <div class="vote-col"><label>2</label><input type="number" id="edtOrgNota2" class="calc-edtOrg" min="0"></div>
-                                <div class="vote-col"><label>3</label><input type="number" id="edtOrgNota3" class="calc-edtOrg" min="0"></div>
-                                <div class="vote-col"><label>4</label><input type="number" id="edtOrgNota4" class="calc-edtOrg" min="0"></div>
-                                <div class="vote-col"><label>5</label><input type="number" id="edtOrgNota5" class="calc-edtOrg" min="0"></div>
-                            </div>
-                            <div class="resultado-preview"><span>Média: <strong id="edtOrgMediaCalc">0.00</strong></span></div>
-                        </div>
-                    </div>
-                    <!-- SATISFAÇÃO -->
-                    <div class="rating-box" style="margin-top: 10px;">
-                        <div class="rating-header"><div><h3>Satisfação</h3></div><label class="switch"><input type="checkbox" id="editarAtivarSat" checked><span class="slider"></span></label></div>
-                        <div id="editarCampoSatisfacao">
-                            <div class="votes-input-group">
-                                <div class="vote-col"><label>1</label><input type="number" id="edtSatNota1" class="calc-edtSat" min="0"></div>
-                                <div class="vote-col"><label>2</label><input type="number" id="edtSatNota2" class="calc-edtSat" min="0"></div>
-                                <div class="vote-col"><label>3</label><input type="number" id="edtSatNota3" class="calc-edtSat" min="0"></div>
-                                <div class="vote-col"><label>4</label><input type="number" id="edtSatNota4" class="calc-edtSat" min="0"></div>
-                                <div class="vote-col"><label>5</label><input type="number" id="edtSatNota5" class="calc-edtSat" min="0"></div>
-                            </div>
-                            <div class="resultado-preview"><span>Média: <strong id="edtSatMediaCalc">0.00</strong></span></div>
-                        </div>
-                    </div>
-                    <!-- MINISTRANTES OPCIONAL -->
-                    <div class="form-group" style="margin-top: 15px; border-top: 1px solid #e2e8f0; padding-top: 15px;">
-                        <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 700; color: #4f46e5;">
-                            Este curso teve ministrantes?
-                            <div class="switch"><input type="checkbox" id="toggleTeveMinistrantesEdit" checked><span class="slider"></span></div>
-                        </label>
-                    </div>
-                    <div id="areaMinistrantesEdit" style="margin-top: 10px;">
-                        <div id="selecionadosEditarMinistrantes" class="selected-list"></div>
-                        <div class="add-inline" style="margin-top: 10px;">
-                            <select id="editarCursoMinistranteSelect"></select>
-                            <button type="button" class="secondary-button" onclick="adicionarMinistranteAoEditarCurso()">Adicionar</button>
-                        </div>
-                        <div class="rating-box" style="margin-top: 10px;">
-                            <div class="rating-header"><div><h3>Notas dos Ministrantes</h3></div></div>
-                            <div id="editarCampoMinistrantes"><div id="editarNotasMinistrantesContainer"></div></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-actions" style="margin-top: 20px;">
-                    <button type="button" class="secondary-button" onclick="fecharModal('modalEditarCurso')">Cancelar</button>
-                    <button type="submit" class="primary-button">Salvar alterações</button>
-                </div>
-            </form>
+        <!-- PERGUNTA SE TEVE MINISTRANTE -->
+        <div class="form-group" style="background: #f1f5f9; padding: 10px; border-radius: 8px;">
+            <label style="display: flex; align-items: center; gap: 10px; font-size: 14px; margin: 0; cursor: pointer;">
+                <input type="checkbox" id="checkTeveMinistrante" checked onchange="toggleBlocoMinistrantes()" style="width: 18px; height: 18px;">
+                <strong>Este curso teve ministrantes?</strong>
+            </label>
+        </div>
+
+        <!-- BLOCO DE MINISTRANTES (OCULTÁVEL) -->
+        <div id="blocoMinistrantesAvaliacao">
+            <div class="section-subtitle">2. Avalie os Ministrantes (Ordem Alfabética)</div>
+            <div id="areaMinistrantesAvaliar">
+                <!-- Preenchido via JS (Ordem Alfabética) -->
+            </div>
+        </div>
+
+        <!-- COMENTÁRIO -->
+        <div class="form-group" style="margin-top: 15px;">
+            <label>Comentários / Sugestões (Opcional)</label>
+            <textarea id="avaliacaoComentario" rows="3"></textarea>
+        </div>
+
+        <div class="modal-actions">
+            <button class="secondary-button" onclick="fecharModal('modalCadastrarAvaliacao')">Cancelar</button>
+            <button class="primary-button" onclick="salvarAvaliacao()">Enviar Avaliação</button>
         </div>
     </div>
+</div>
 
-    <!-- MODAL MINISTRANTE -->
-    <div class="modal-overlay" id="modalMinistrante" style="z-index: 1050;">
-        <div class="modal modal-small">
-            <div class="modal-header"><h2>Novo ministrante</h2><button class="close-button" onclick="fecharModal('modalMinistrante')">×</button></div>
-            <form id="formMinistrante">
-                <div class="form-group"><label>Nome *</label><input type="text" id="ministranteNome" required style="text-transform: uppercase;"></div>
-                <div class="modal-actions"><button type="button" class="secondary-button" onclick="fecharModal('modalMinistrante')">Cancelar</button><button type="submit" class="primary-button">Salvar</button></div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL GERÊNCIA -->
-    <div class="modal-overlay" id="modalGerencia">
-        <div class="modal modal-small">
-            <div class="modal-header"><h2>Nova gerência</h2><button class="close-button" onclick="fecharModal('modalGerencia')">×</button></div>
-            <form id="formGerencia">
-                <div class="form-group"><label>Nome *</label><input type="text" id="gerenciaNome" required></div>
-                <div class="modal-actions"><button type="button" class="secondary-button" onclick="fecharModal('modalGerencia')">Cancelar</button><button type="submit" class="primary-button">Salvar</button></div>
-            </form>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
-    <script src="integra.js" defer></script>
+<script src="integra.js"></script>
 </body>
 </html>

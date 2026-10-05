@@ -15,11 +15,9 @@ body {
     line-height: 1.5;
 }
 
-/* MODIFICAÇÃO: Trava a altura da tela para rolagem independente */
 .app {
     display: flex;
-    height: 100vh;
-    overflow: hidden;
+    min-height: 100vh;
 }
 
 /* ============================================================
@@ -33,14 +31,6 @@ body {
     flex-direction: column;
     padding: 20px 15px;
     flex-shrink: 0;
-    height: 100vh;
-    overflow-y: auto; /* Rolagem própria do menu */
-    transition: margin-left 0.3s ease; /* Animação de ocultar */
-}
-
-/* Classe ativada via JS para esconder o menu */
-.sidebar.oculta {
-    margin-left: -260px;
 }
 
 .brand {
@@ -108,6 +98,15 @@ body {
     color: #ffffff;
 }
 
+.menu-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    color: currentColor;
+}
+
 .logout-button {
     margin-top: auto;
     color: #ef4444;
@@ -124,8 +123,7 @@ body {
 .main-content {
     flex: 1;
     padding: 25px 35px;
-    height: 100vh;
-    overflow-y: auto; /* Rolagem própria do conteúdo principal */
+    overflow-y: auto;
 }
 
 .topbar {
@@ -154,15 +152,31 @@ body {
     border-radius: 50%;
 }
 
-.page { display: none; }
-.page.active { display: block; }
+.page {
+    display: none;
+}
 
-.page-header { margin-bottom: 25px; }
-.page-header h1 { font-size: 24px; font-weight: 700; color: #0f172a; }
-.page-header p { color: #64748b; font-size: 13px; }
+.page.active {
+    display: block;
+}
+
+.page-header {
+    margin-bottom: 25px;
+}
+
+.page-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.page-header p {
+    color: #64748b;
+    font-size: 13px;
+}
 
 /* ============================================================
-   4. COMPONENTES E CARDS
+   4. CARDS DE INDICADORES (NOVO FORMATO EM QUADROS)
    ============================================================ */
 .stats-cards-row {
     display: grid;
@@ -171,7 +185,47 @@ body {
     margin-bottom: 25px;
 }
 
-.indicator-card, .course-card-unit, .panel-card {
+.indicator-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 16px 20px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.indicator-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.indicator-value {
+    font-size: 26px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1;
+}
+
+.indicator-value.highlight {
+    color: #4f46e5;
+}
+
+/* ============================================================
+   5. CARDS E PAINÉIS GERAIS
+   ============================================================ */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.panel-card {
     background: #ffffff;
     border-radius: 12px;
     padding: 20px;
@@ -179,69 +233,593 @@ body {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.indicator-title { font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; }
-.indicator-value { font-size: 26px; font-weight: 800; color: #0f172a; margin-top: 5px; }
+.panel-title {
+    margin-bottom: 15px;
+}
 
-.course-cards-container { display: flex; flex-direction: column; gap: 20px; }
-.course-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
-.course-card-title { font-size: 18px; font-weight: 700; color: #0f172a; }
-.course-card-subtitle { font-size: 12px; color: #64748b; margin-top: 4px; }
-.course-card-obs { font-size: 13px; color: #475569; background: #f8fafc; padding: 10px; border-radius: 6px; margin-top: 10px; border-left: 3px solid #cbd5e1; }
-.course-card-actions { display: flex; gap: 10px; margin-top: 15px;}
+.panel-title h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+}
 
-/* ============================================================
-   5. BOTÕES, FORMULÁRIOS E INPUTS
-   ============================================================ */
-.primary-button { background: #4f46e5; color: #ffffff; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; }
-.primary-button:hover { background: #4338ca; }
-.secondary-button { background: #ffffff; color: #475569; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; }
-.secondary-button:hover { background: #f8fafc; }
+.panel-title p {
+    font-size: 12px;
+    color: #64748b;
+}
 
-.form-group { margin-bottom: 15px; }
-.form-group label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 6px; }
-.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; }
-.form-row { display: flex; gap: 15px; }
-.form-row .form-group { flex: 1; }
+.score-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
 
-/* MODIFICAÇÃO: Força texto maiúsculo no input */
-.input-maiusculo { text-transform: uppercase; }
-
-/* ============================================================
-   6. RATING E MODAIS
-   ============================================================ */
-.rating-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
-.rating-header { margin-bottom: 12px; }
-.votes-input-group { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
-.vote-col label { font-size: 11px; color: #64748b; display: block; margin-bottom: 4px; }
-.vote-col input { text-align: center; width: 100%; }
-
-.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); display: none; align-items: center; justify-content: center; z-index: 1000; }
-.modal-overlay.active { display: flex; }
-.modal { background: #ffffff; border-radius: 12px; width: 90%; max-width: 650px; padding: 24px; max-height: 90vh; overflow-y: auto; }
-.modal-large { max-width: 820px; }
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.close-button { background: none; border: none; font-size: 20px; cursor: pointer; }
-.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
-
-/* ============================================================
-   7. COMENTÁRIOS E GERÊNCIAS
-   ============================================================ */
-/* MODIFICAÇÃO: Caixa com rolagem independente para os comentários */
-.caixa-rolagem-comentarios {
-    max-height: 400px;
-    overflow-y: auto;
-    padding-right: 10px;
-    border: 1px solid #e2e8f0;
+.score-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: #f8fafc;
     border-radius: 8px;
-    padding: 15px;
+}
+
+.score-row span {
+    color: #475569;
+    font-weight: 500;
+}
+
+.score-row strong {
+    font-size: 16px;
+    color: #0f172a;
+}
+
+/* ============================================================
+   6. BOTÕES E FORMULÁRIOS
+   ============================================================ */
+.primary-button {
+    background: #4f46e5;
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.primary-button:hover {
+    background: #4338ca;
+}
+
+.secondary-button {
+    background: #ffffff;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.secondary-button:hover {
     background: #f8fafc;
 }
-.comment-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; margin-bottom: 10px; }
-.btn-editar-comentario { background: none; border: none; color: #4f46e5; font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 8px; }
-.btn-editar-comentario:hover { text-decoration: underline; }
 
-.management-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
-.management-card { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 20px; text-align: center; }
+.full-width {
+    width: 100%;
+}
 
-.selected-tag { background: #e0e7ff; color: #3730a3; padding: 4px 10px; border-radius: 16px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; margin: 4px; }
-.selected-tag button { background: none; border: none; color: #ef4444; cursor: pointer; font-weight: bold;}
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 6px;
+}
+
+.form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 13px;
+    background: #ffffff;
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+/* ============================================================
+   7. SEÇÕES DE NOTAS E AVALIAÇÕES (VOTOS 1 A 5)
+   ============================================================ */
+.rating-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.rating-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.votes-input-group {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 12px;
+    width: 100%;
+}
+
+.vote-col {
+    text-align: center;
+    min-width: 0;
+}
+
+.vote-col label {
+    font-size: 11px;
+    color: #64748b;
+    display: block;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.vote-col input {
+    text-align: center;
+    padding: 6px 2px;
+    width: 100%;
+}
+
+.resultado-preview {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+/* ============================================================
+   8. TABELAS
+   ============================================================ */
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 13px;
+}
+
+th {
+    background: #f8fafc;
+    padding: 10px 14px;
+    color: #64748b;
+    font-weight: 600;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+}
+
+.rating-number {
+    font-weight: 700;
+    color: #4f46e5;
+}
+
+/* ============================================================
+   9. MODAIS
+   ============================================================ */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal {
+    background: #ffffff;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 650px;
+    padding: 24px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-large {
+    max-width: 820px;
+}
+
+.modal-small {
+    max-width: 400px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-header h2 {
+    font-size: 18px;
+    color: #0f172a;
+}
+
+.close-button {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #94a3b8;
+    cursor: pointer;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.selected-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.selected-tag {
+    background: #e0e7ff;
+    color: #3730a3;
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.selected-tag button {
+    background: none;
+    border: none;
+    color: #3730a3;
+    cursor: pointer;
+}
+
+.add-inline {
+    display: flex;
+    gap: 8px;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #cbd5e1;
+    transition: .3s;
+    border-radius: 20px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #4f46e5;
+}
+
+input:checked + .slider:before {
+    transform: translateX(16px);
+}
+
+.empty-state {
+    padding: 30px;
+    text-align: center;
+    color: #94a3b8;
+}
+
+/* ============================================================
+   10. ESTILOS DAS SEÇÕES E SUB-ABAS
+   ============================================================ */
+.section-subtitle {
+    font-size: 13px;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.5px;
+    margin: 20px 0 12px 0;
+    text-transform: uppercase;
+}
+
+/* CARDS DA ABA DE CURSOS */
+.course-cards-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.course-card-unit {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.course-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.course-card-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.course-card-subtitle {
+    font-size: 11px;
+    color: #64748b;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.course-metrics-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.metric-box-label {
+    display: block;
+    font-size: 11px;
+    color: #64748b;
+}
+
+.metric-box-value {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.metric-box-value.highlight {
+    color: #4f46e5;
+}
+
+.course-card-details {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 12px 16px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 15px;
+}
+
+.course-card-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.action-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+}
+
+.edit-btn {
+    background: #94a3b8;
+    color: #ffffff;
+}
+
+.delete-btn {
+    background: #fca5a5;
+    color: #991b1b;
+}
+
+/* RANKING DE MINISTRANTES LIMPO */
+.ranking-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ranking-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+.ranking-number {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #e0e7ff;
+    color: #4f46e5;
+    font-weight: 700;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ranking-score {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+/* CARDS EXPANDÍVEIS MINISTRANTES */
+.ministrantes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px;
+}
+
+.ministrante-expand-card {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.ministrante-card-header-clickable {
+    padding: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.ministrante-card-header-clickable:hover {
+    background-color: #f1f5f9;
+}
+
+/* SUB-ABAS DA TELA DE AVALIAÇÕES */
+.sub-nav-tabs {
+    display: flex;
+    gap: 10px;
+    border-bottom: 2px solid #e2e8f0;
+    margin-bottom: 20px;
+}
+
+.sub-nav-tab {
+    padding: 10px 20px;
+    border: none;
+    background: none;
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+}
+
+.sub-nav-tab.active {
+    color: #4f46e5;
+    border-bottom-color: #4f46e5;
+}
+
+.sub-page {
+    display: none;
+}
+
+.sub-page.active {
+    display: block;
+}
+
+.mensal-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.mini-table {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.comments-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.comment-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px 16px;
+}
+
+/* GERÊNCIAS */
+.management-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px;
+}
+
+.management-card {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+}
+
+.management-score {
+    font-size: 32px;
+    font-weight: 800;
+    color: #4f46e5;
+    margin: 8px 0;
+}

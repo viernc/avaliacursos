@@ -12,7 +12,7 @@
     <div class="app">
 
         <!-- MENU LATERAL -->
-        <aside class="sidebar">
+        <aside id="sidebar" class="sidebar">
 
             <div class="brand">
                 <div class="brand-icon">
@@ -89,13 +89,15 @@
         <!-- ÁREA PRINCIPAL -->
         <main class="main-content">
 
-            <header class="topbar">
-                <div></div>
-                <div class="system-status">
-                    <span class="status-dot"></span>
-                    Sistema ativo
-                </div>
-            </header>
+           <header class="topbar">
+        <div>
+            <button class="secondary-button" onclick="document.getElementById('sidebar').classList.toggle('oculta')">☰ Menu</button>
+        </div>
+        <div class="system-status">
+            <span class="status-dot"></span>
+            Sistema ativo
+        </div>
+    </header>
 
             <!-- 1. PÁGINA: VISÃO GERAL -->
             <section class="page active" id="page-dashboard">
@@ -544,7 +546,7 @@
                         </div>
                         <div class="panel-card">
                             <div class="panel-title"><h2>Comentários Registrados</h2></div>
-                            <div id="feedComentarios" class="comments-feed"></div>
+                            <div id="feedComentarios" class="comments-feed caixa-rolagem-comentarios"></div>
                         </div>
                     </div>
                 </div>
@@ -590,13 +592,22 @@
                 <h2>Novo curso</h2>
                 <button class="close-button" onclick="fecharModal('modalCurso')">×</button>
             </div>
-            <form id="formCurso">
+
+             <form id="formCurso">
                 <div class="form-group"><label>Nome *</label><input type="text" id="cursoNome" required></div>
                 <div class="form-group"><label>Gerência *</label><select id="cursoGerencia" required></select></div>
+                
                 <div class="form-row">
                     <div class="form-group"><label>Início *</label><input type="date" id="cursoDataInicio" required></div>
                     <div class="form-group"><label>Fim *</label><input type="date" id="cursoDataFim" required></div>
                 </div>
+
+                <!-- O campo de observações fica AQUI, fora do form-row das datas -->
+                <div class="form-group">
+                    <label>Observações do Curso</label>
+                    <textarea id="cursoObservacoes" rows="3" placeholder="Opcional..."></textarea>
+                </div>
+                
                 <div class="form-row">
                     <div class="form-group"><label>Inscritos</label><input type="number" id="cursoInscritos" min="0" placeholder="0"></div>
                     <div class="form-group"><label>Certificados</label><input type="number" id="cursoCertificados" min="0" placeholder="0"></div>
@@ -632,10 +643,18 @@
                 <input type="hidden" id="editarCursoId">
                 <div class="form-group"><label>Nome do curso *</label><input type="text" id="editarCursoNome" required></div>
                 <div class="form-group"><label>Gerência *</label><select id="editarCursoGerencia" required></select></div>
+                
                 <div class="form-row">
                     <div class="form-group"><label>Data de Início *</label><input type="date" id="editarCursoDataInicio" required></div>
                     <div class="form-group"><label>Data de Fim *</label><input type="date" id="editarCursoDataFim" required></div>
                 </div>
+
+                <!-- O campo de observações entra AQUI -->
+                <div class="form-group">
+                    <label>Observações do Curso</label>
+                    <textarea id="editarCursoObservacoes" rows="3" placeholder="Opcional..."></textarea>
+                </div>
+
                 <div class="form-row">
                     <div class="form-group"><label>Inscritos</label><input type="number" id="editarCursoInscritos" min="0" placeholder="0"></div>
                     <div class="form-group"><label>Certificados</label><input type="number" id="editarCursoCertificados" min="0" placeholder="0"></div>
@@ -709,7 +728,7 @@
                 <button class="close-button" onclick="fecharModal('modalMinistrante')">×</button>
             </div>
             <form id="formMinistrante">
-                <div class="form-group"><label>Nome *</label><input type="text" id="ministranteNome" required></div>
+                <div class="form-group"><label>Nome *</label><input type="text" id="ministranteNome" class="input-maiusculo" required></div>
                 <div class="modal-actions">
                     <button type="button" class="secondary-button" onclick="fecharModal('modalMinistrante')">Cancelar</button>
                     <button type="submit" class="primary-button">Salvar</button>
@@ -734,66 +753,68 @@
         </div>
     </div>
 
-    <div class="modal-overlay" id="modalAvaliacao">
-        <div class="modal modal-large">
-            <div class="modal-header">
-                <h2>Nova avaliação isolada</h2>
-                <button class="close-button" onclick="fecharModal('modalAvaliacao')">×</button>
-            </div>
-            <form id="formAvaliacao">
-                <div class="form-group"><label>Curso *</label><select id="avaliacaoCurso" required></select></div>
-                <div class="form-group"><label>Respostas *</label><input type="number" id="avaliacaoRespostas" min="1" required></div>
-                
-                <div class="rating-box">
-                    <div class="rating-header"><h3>Satisfação</h3><label class="switch"><input type="checkbox" id="ativarSatisfacao" checked><span class="slider"></span></label></div>
-                    <div id="campoSatisfacao">
-                        <div class="votes-input-group">
-                            <div class="vote-col"><label>⭐ 1</label><input type="number" id="satNota1" class="calc-sat" min="0" placeholder="0"></div>
-                            <div class="vote-col"><label>⭐⭐ 2</label><input type="number" id="satNota2" class="calc-sat" min="0" placeholder="0"></div>
-                            <div class="vote-col"><label>⭐⭐⭐ 3</label><input type="number" id="satNota3" class="calc-sat" min="0" placeholder="0"></div>
-                            <div class="vote-col"><label>⭐⭐⭐⭐ 4</label><input type="number" id="satNota4" class="calc-sat" min="0" placeholder="0"></div>
-                            <div class="vote-col"><label>⭐⭐⭐⭐⭐ 5</label><input type="number" id="satNota5" class="calc-sat" min="0" placeholder="0"></div>
-                        </div>
-                        <div class="resultado-preview"><span>Média: <strong id="satMediaCalc">0.00</strong></span><span id="satStatusCalc" class="badge-status">Aguardando</span></div>
-                    </div>
-                </div>
-
-                <div class="rating-box">
-                    <div class="rating-header"><h3>Ministrantes</h3><label class="switch"><input type="checkbox" id="ativarMinistrantes" checked><span class="slider"></span></label></div>
-                    <div id="campoMinistrantes"><div id="notasMinistrantes"></div><button type="button" class="secondary-button full-width" onclick="adicionarNotaMinistrante()">+ Adicionar ministrante</button></div>
-                </div>
-
-                <div class="rating-box">
-                    <div class="rating-header"><h3>Organização</h3><label class="switch"><input type="checkbox" id="ativarOrganizacao" checked><span class="slider"></span></label></div>
-                    <div id="campoOrganizacao">
-                        <div class="votes-input-group">
-                            <div class="vote-col"><label> 1</label><input type="number" id="orgNota1" class="calc-org" min="0" placeholder="0"></div>
-                            <div class="vote-col"><label> 2</label><input type="number" id="orgNota2" class="calc-org" min="0" placeholder="0"></div>
-                            <div class="vote-col"><label> 3</label><input type="number" id="orgNota3" class="calc-org" min="0" placeholder="0"></div>
-                            <div class="vote-col"><label> 4</label><input type="number" id="orgNota4" class="calc-org" min="0" placeholder="0"></div>
-                            <div class="vote-col"><label> 5</label><input type="number" id="orgNota5" class="calc-org" min="0" placeholder="0"></div>
-                        </div>
-                        <div class="resultado-preview"><span>Média: <strong id="orgMediaCalc">0.00</strong></span><span id="orgStatusCalc" class="badge-status">Aguardando</span></div>
-                    </div>
-                </div>
-
-                <div class="modal-actions">
-                    <button type="button" class="secondary-button" onclick="fecharModal('modalAvaliacao')">Cancelar</button>
-                    <button type="submit" class="primary-button">Salvar</button>
-                </div>
-            </form>
+     <div class="modal-overlay" id="modalAvaliacao">
+    <div class="modal modal-large">
+        <div class="modal-header">
+            <h2>Nova avaliação isolada</h2>
+            <button class="close-button" onclick="fecharModal('modalAvaliacao')">×</button>
         </div>
+        <form id="formAvaliacao">
+            <div class="form-group"><label>Curso *</label><select id="avaliacaoCurso" required></select></div>
+            <div class="form-group"><label>Gerência (Usuário) *</label><select id="avaliacaoGerenciaUsuario" required></select></div>
+            <div class="form-group"><label>Respostas *</label><input type="number" id="avaliacaoRespostas" min="1" required></div>
+            
+            <!-- 1. SATISFAÇÃO -->
+            <div class="rating-box">
+                <div class="rating-header"><h3>Satisfação</h3><label class="switch"><input type="checkbox" id="ativarSatisfacao" checked><span class="slider"></span></label></div>
+                <div id="campoSatisfacao">
+                    <div class="votes-input-group">
+                        <div class="vote-col"><label>⭐ 1</label><input type="number" id="satNota1" class="calc-sat" min="0"></div>
+                        <div class="vote-col"><label>⭐⭐ 2</label><input type="number" id="satNota2" class="calc-sat" min="0"></div>
+                        <div class="vote-col"><label>⭐⭐⭐ 3</label><input type="number" id="satNota3" class="calc-sat" min="0"></div>
+                        <div class="vote-col"><label>⭐⭐⭐⭐ 4</label><input type="number" id="satNota4" class="calc-sat" min="0"></div>
+                        <div class="vote-col"><label>⭐⭐⭐⭐⭐ 5</label><input type="number" id="satNota5" class="calc-sat" min="0"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. ORGANIZAÇÃO VEM ANTES -->
+            <div class="rating-box">
+                <div class="rating-header"><h3>Organização</h3><label class="switch"><input type="checkbox" id="ativarOrganizacao" checked><span class="slider"></span></label></div>
+                <div id="campoOrganizacao">
+                    <div class="votes-input-group">
+                        <div class="vote-col"><label> 1</label><input type="number" id="orgNota1" class="calc-org" min="0"></div>
+                        <div class="vote-col"><label> 2</label><input type="number" id="orgNota2" class="calc-org" min="0"></div>
+                        <div class="vote-col"><label> 3</label><input type="number" id="orgNota3" class="calc-org" min="0"></div>
+                        <div class="vote-col"><label> 4</label><input type="number" id="orgNota4" class="calc-org" min="0"></div>
+                        <div class="vote-col"><label> 5</label><input type="number" id="orgNota5" class="calc-org" min="0"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 3. MINISTRANTES VEM DEPOIS (Pode desligar no botão) -->
+            <div class="rating-box">
+                <div class="rating-header"><h3>Ministrantes (Teve ministrante?)</h3><label class="switch"><input type="checkbox" id="ativarMinistrantes" checked><span class="slider"></span></label></div>
+                <div id="campoMinistrantes">
+                    <div id="notasMinistrantes"></div>
+                    <button type="button" class="secondary-button full-width" onclick="adicionarNotaMinistrante()">+ Adicionar ministrante</button>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="secondary-button" onclick="fecharModal('modalAvaliacao')">Cancelar</button>
+                <button type="submit" class="primary-button">Salvar</button>
+            </div>
+        </form>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="integra.js" defer></script>
+ <!-- Scripts do Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Scripts do Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<!-- Chart.js et Integra.js semel tantum -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="integra.js" defer></script>
 
-    <script src="integra.js" defer></script>
-</body>
 </html>

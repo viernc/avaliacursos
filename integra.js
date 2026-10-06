@@ -2300,17 +2300,12 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    /* Limpar dados: apaga também no Firebase (confirmação dupla) */
-    const btnLimpar = document.getElementById("btnLimparDados");
-    if (btnLimpar) {Pasta sem nomeOficina de IA para gestores - MOTRIZ
-        btnLimpar.addEventListener("click", function () {
-            if (!confirm("Tem certeza que deseja apagar TODOS os dados? Isso também apaga no banco online e não pode ser desfeito.")) return;
-            if (!confirm("Confirmação final: apagar tudo mesmo?")) return;
-            banco = { cursos: [], ministrantes: [], gerencias: [], avaliacoes: [], comentarios: [] };
-            salvarBanco();
-            atualizarSistema();
-        });
-    }
-
-    atualizarSistema();
-});
+  if (btnLimpar) {
+    btnLimpar.addEventListener("click", function () {
+        if (!confirm("Tem certeza que deseja apagar TODOS os dados? Isso também apaga no banco online e não pode ser desfeito.")) return;
+        if (!confirm("Confirmação final: apagar tudo mesmo?")) return;
+        banco = { cursos: [], ministrantes: [], gerencias: [], avaliacoes: [], comentarios: [] };
+        salvarBanco();
+        atualizarSistema();
+    });
+}

@@ -1,5 +1,3 @@
-
-
 /* ============================================================
    AVALIACURSOS - BANCO DE DADOS NA NUVEM (FIREBASE)
    ============================================================ */
@@ -384,6 +382,7 @@ function abrirEditarCurso(id) {
     document.getElementById("editarCursoDataFim").value = curso.dataFim || curso.data || "";
     document.getElementById("editarCursoInscritos").value = curso.inscritos;
     document.getElementById("editarCursoCertificados").value = curso.certificados;
+    document.getElementById("editarCursoObservacoes").value = curso.observacao || "";
 
     ministrantesEditarCurso = [...(curso.ministrantes || [])];
     mostrarMinistrantesEditarCurso();
@@ -425,21 +424,17 @@ function atualizarSelectGerencias() {
 function atualizarSelectMinistrantes() {
     const selects = [
         document.getElementById("cursoMinistranteSelect"), 
-        document.getElementById("cadMinSelect"),
         document.getElementById("editarCursoMinistranteSelect")
     ];
+    
+    // ORDENA AQUI ANTES DE FAZER O LOOP:
+    const ministrantesOrdenados = [...banco.ministrantes].sort((a, b) => a.nome.localeCompare(b.nome));
 
-    selects.forEach(select => {
-        if (!select) return;
-
-        if (banco.ministrantes.length === 0) {
-            select.innerHTML = `<option value="">Cadastre um ministrante primeiro</option>`;
-            return;
-        }
-
-        select.innerHTML = `<option value="">Selecione um ministrante</option>`;
-        banco.ministrantes.forEach(m => {
-            select.innerHTML += `<option value="${m.id}">${escaparHTML(m.nome)}</option>`;
+    selects.forEach(sel => {
+        if (!sel) return;
+        sel.innerHTML = `<option value="">Selecione um ministrante</option>`;
+        ministrantesOrdenados.forEach(m => {
+            sel.innerHTML += `<option value="${m.id}">${escaparHTML(m.nome)}</option>`;
         });
     });
 }
@@ -1040,6 +1035,7 @@ function renderizarAbaAvaliacoes() {
             </table>
         `;
     }
+}
 
     const cardsMensalMin = document.getElementById("cardsAvMinistrantesMensal");
     if (cardsMensalMin) {
@@ -1089,13 +1085,15 @@ function renderizarAbaAvaliacoes() {
                             <small>${c.data || "—"}</small>
                         </div>
                         <div style="font-size:12px; color:#4f46e5; margin-bottom:8px;">Gerência: ${ger ? escaparHTML(ger.nome) : "—"} | Categoria: ${c.tipo || "Geral"}</div>
-                        <p style="font-size:13px; color:#334155; margin:0;">${escaparHTML(c.texto)}</p>
+                        <p style="font-size:13px; color:#334155; margin:0; padding-bottom: 8px;">${escaparHTML(c.texto)}</p>
+                        
+                        <!-- BOTÃO DE EDITAR ADICIONADO AQUI -->
+                        <button class="btn-editar-comentario" onclick="editarComentario('${c.id}')">✎ Editar Comentário</button>
                     </div>
                 `;
             }).join("");
         }
     }
-}
 
 function renderizarSubAbaCategoria(prefixo, categoria, elNota, elResp, elMes, elGer, canvasId) {
     const avalValidas = banco.avaliacoes.filter(a => a[categoria] !== null);
@@ -1636,91 +1634,53 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    const formEditarCurso = document.getElementById("formEditarCurso");
-    if (formEditarCurso) {
-        formEditarCurso.addEventListener("submit", function (e) {
-            e.preventDefault();
+ const formEditarCurso = document.getElementById("formEditarCurso");
+if (formEditarCurso) {
+    formEditarCurso.addEventListener("submit", function (e) {
+        e.preventDefault();
 
-            const id = document.getElementById("editarCursoId").value;
-            const nome = document.getElementById("editarCursoNome").value.trim();
-            const gerenciaId = document.getElementById("editarCursoGerencia").value;
-            const dataInicio = document.getElementById("editarCursoDataInicio").value;
-            const dataFim = document.getElementById("editarCursoDataFim").value;
-            const inscritos = Number(document.getElementById("editarCursoInscritos").value) || 0;
-            const certificados = Number(document.getElementById("editarCursoCertificados").value) || 0;
-            const respostas = Number(document.getElementById("editarAvaliacaoRespostas").value) || 0;
+        const id = document.getElementById("editarCursoId").value;
+        const nome = document.getElementById("editarCursoNome").value.trim();
+        const gerenciaId = document.getElementById("editarCursoGerencia").value;
+        const dataInicio = document.getElementById("editarCursoDataInicio").value;
+        const dataFim = document.getElementById("editarCursoDataFim").value;
+        const inscritos = Number(document.getElementById("editarCursoInscritos").value) || 0;
+        const certificados = Number(document.getElementById("editarCursoCertificados").value) || 0;
+        
+        // Puxando a nossa nova observação!
+        const observacoes = document.getElementById("editarCursoObservacoes").value.trim();
 
-            if (!nome || !gerenciaId || !dataInicio || !dataFim || ministrantesEditarCurso.length === 0) {
-                alert("Preencha todos os campos obrigatórios."); return;
-            }
+        if (!nome || !gerenciaId || !dataInicio || !dataFim) {
+            alert("Preencha todos os campos obrigatórios."); 
+            return; 
+        }
 
-            const curso = banco.cursos.find(c => c.id === id);
-            if (curso) {
-                curso.nome = nome; curso.gerenciaId = gerenciaId; curso.dataInicio = dataInicio;
-                curso.dataFim = dataFim; curso.inscritos = inscritos; curso.certificados = certificados;
-                curso.ministrantes = [...ministrantesEditarCurso];
-            }
+        const curso = banco.cursos.find(c => c.id === id);
+        if (curso) {
+            curso.nome = nome; 
+            curso.gerenciaId = gerenciaId; 
+            curso.dataInicio = dataInicio;
+            curso.dataFim = dataFim; 
+            curso.inscritos = inscritos; 
+            curso.certificados = certificados;
+            curso.ministrantes = [...ministrantesEditarCurso];
+            curso.observacao = observacoes; // Salvando a observação aqui!
+        }
 
-            let avaliacao = banco.avaliacoes.find(a => a.cursoId === id);
-            if (!avaliacao) { avaliacao = { id: novoId(), cursoId: id }; banco.avaliacoes.push(avaliacao); }
-            avaliacao.respostas = respostas;
+        // PRONTO! Paramos por aqui. Não mexemos na variável "banco.avaliacoes", 
+        // o que garante que NADA das avaliações do curso será apagado!
 
-            if (document.getElementById("editarAtivarSat").checked) {
-                let n1 = parseInt(document.getElementById("edtSatNota1").value) || 0;
-                let n2 = parseInt(document.getElementById("edtSatNota2").value) || 0;
-                let n3 = parseInt(document.getElementById("edtSatNota3").value) || 0;
-                let n4 = parseInt(document.getElementById("edtSatNota4").value) || 0;
-                let n5 = parseInt(document.getElementById("edtSatNota5").value) || 0;
-                if (!validarSomaVotos(respostas, n1, n2, n3, n4, n5, "Satisfação")) return;
-                avaliacao.satisfacao = (n1*1 + n2*2 + n3*3 + n4*4 + n5*5) / respostas;
-            } else avaliacao.satisfacao = null;
-
-            if (document.getElementById("editarAtivarOrg").checked) {
-                let n1 = parseInt(document.getElementById("edtOrgNota1").value) || 0;
-                let n2 = parseInt(document.getElementById("edtOrgNota2").value) || 0;
-                let n3 = parseInt(document.getElementById("edtOrgNota3").value) || 0;
-                let n4 = parseInt(document.getElementById("edtOrgNota4").value) || 0;
-                let n5 = parseInt(document.getElementById("edtOrgNota5").value) || 0;
-                if (!validarSomaVotos(respostas, n1, n2, n3, n4, n5, "Organização")) return;
-                avaliacao.organizacao = (n1*1 + n2*2 + n3*3 + n4*4 + n5*5) / respostas;
-            } else avaliacao.organizacao = null;
-
-            if (document.getElementById("editarAtivarMin").checked) {
-                let notasM = [];
-                const itens = document.querySelectorAll(".ministrante-edt-item");
-                let erroMin = false;
-
-                itens.forEach(item => {
-                    const mId = item.dataset.ministranteId;
-                    const mObj = banco.ministrantes.find(i => i.id === mId);
-                    let n1 = parseInt(item.querySelector(".emin-n1").value) || 0;
-                    let n2 = parseInt(item.querySelector(".emin-n2").value) || 0;
-                    let n3 = parseInt(item.querySelector(".emin-n3").value) || 0;
-                    let n4 = parseInt(item.querySelector(".emin-n4").value) || 0;
-                    let n5 = parseInt(item.querySelector(".emin-n5").value) || 0;
-
-                    if (!validarSomaVotos(respostas, n1, n2, n3, n4, n5, `Ministrante: ${mObj ? mObj.nome : ''}`)) {
-                        erroMin = true; return;
-                    }
-                    notasM.push({ ministranteId: mId, nota: (n1*1 + n2*2 + n3*3 + n4*4 + n5*5)/respostas });
-                });
-
-                if (erroMin) return;
-                avaliacao.ministrantes = notasM;
-            } else avaliacao.ministrantes = [];
-
-            salvarBanco();
-            alert("Curso e avaliação atualizados!");
-            fecharModal("modalEditarCurso");
-            atualizarSistema();
-        });
-    }
+        salvarBanco();
+        fecharModal("modalEditarCurso");
+        atualizarSistema();
+    });
+}
 
     const formMin = document.getElementById("formMinistrante");
     if (formMin) {
         formMin.addEventListener("submit", function (e) {
             e.preventDefault();
-            const nome = document.getElementById("ministranteNome").value.trim();
+            const nome = document.getElementById("ministranteNome").value.trim().toUpperCase();
             if (!nome) return;
 
             const existe = banco.ministrantes.some(m => m.nome.toLowerCase() === nome.toLowerCase());
@@ -1763,5 +1723,19 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    atualizarSistema();
+  atualizarSistema();
 });
+
+// COMENTÁRIOS: Função para editar comentários
+window.editarComentario = function(idComentario) {
+    const index = banco.comentarios.findIndex(c => c.id === idComentario);
+    if(index !== -1) {
+        const textoAntigo = banco.comentarios[index].texto;
+        const novoTexto = prompt("Edite o comentário:", textoAntigo);
+        if(novoTexto !== null && novoTexto.trim() !== "") {
+            banco.comentarios[index].texto = novoTexto.trim();
+            salvarBanco();
+            atualizarSistema(); // Atualiza a tela automaticamente
+        }
+    }
+};

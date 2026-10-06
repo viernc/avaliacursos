@@ -22,6 +22,8 @@
                     <strong>AvaliaCursos</strong>
                     <span>Gestão de Avaliações EGEPI</span>
                 </div>
+                <!-- NOVO: botão para ocultar o menu -->
+                <button type="button" id="btnOcultarMenu" class="btn-ocultar-menu" title="Ocultar menu" onclick="document.getElementById('sidebar').classList.toggle('oculta'); document.body.classList.toggle('menu-oculto');">‹</button>
             </div>
 
             <nav class="menu">
@@ -91,7 +93,7 @@
 
            <header class="topbar">
         <div>
-            <button class="secondary-button" onclick="document.getElementById('sidebar').classList.toggle('oculta')">☰ Menu</button>
+            <button class="secondary-button" onclick="document.getElementById('sidebar').classList.toggle('oculta'); document.body.classList.toggle('menu-oculto');">☰ Menu</button>
         </div>
         <div class="system-status">
             <span class="status-dot"></span>
@@ -218,7 +220,13 @@
                     <div class="panel-card form-section-block">
                         <div class="form-section-title">Bloco 1: Informações do Curso</div>
                         <div class="form-group"><label>Nome do curso *</label><input type="text" id="cadCursoNome" required></div>
-                        <div class="form-group"><label>Gerência *</label><select id="cadCursoGerencia" required></select></div>
+                        <!-- Gerência agora em caixa de seleção com opção inicial -->
+                        <div class="form-group">
+                            <label>Gerência *</label>
+                            <select id="cadCursoGerencia" required>
+                                <option value="">Selecione a gerência...</option>
+                            </select>
+                        </div>
                         <div class="form-row">
                             <div class="form-group"><label>Data de Início *</label><input type="date" id="cadCursoDataInicio" required></div>
                             <div class="form-group"><label>Data de Fim *</label><input type="date" id="cadCursoDataFim" required></div>
@@ -227,18 +235,32 @@
                             <div class="form-group"><label>Inscritos</label><input type="number" id="cadCursoInscritos" min="0" placeholder="0"></div>
                             <div class="form-group"><label>Certificados</label><input type="number" id="cadCursoCertificados" min="0" placeholder="0"></div>
                         </div>
+                        <!-- NOVO: observações do curso -->
+                        <div class="form-group">
+                            <label>Observações do Curso</label>
+                            <textarea id="cadCursoObservacoes" rows="3" style="width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; padding: 8px;" placeholder="Opcional..."></textarea>
+                        </div>
                     </div>
 
-                    <!-- BLOCO DE MINISTRANTES COM BOTÃO DE ATALHO -->
+                    <!-- BLOCO DE MINISTRANTES COM PERGUNTA "TEVE MINISTRANTE?" -->
                     <div class="panel-card form-section-block">
                         <div class="form-section-title">Bloco 2: Ministrantes do Curso</div>
-                        <div class="form-group">
-                            <label>Selecione os ministrantes que ministraram este curso *</label>
-                            <div id="selecionadosCadMinistrantes" class="selected-list"></div>
-                            <div class="add-inline" style="margin-top: 10px;">
-                                <select id="cadMinSelect"></select>
-                                <button type="button" class="secondary-button" onclick="adicionarMinistranteCadastrarAvaliacao()">Adicionar</button>
-                                <button type="button" class="primary-button" onclick="abrirModalMinistrante()" style="padding: 0 12px; font-size: 20px;" title="Criar Novo Ministrante">+</button>
+                        <div class="form-group" style="max-width: 300px;">
+                            <label>Este curso teve ministrante? *</label>
+                            <select id="cadTeveMinistrante">
+                                <option value="sim" selected>Sim</option>
+                                <option value="nao">Não</option>
+                            </select>
+                        </div>
+                        <div id="blocoCadMinistrantes">
+                            <div class="form-group">
+                                <label>Selecione os ministrantes que ministraram este curso *</label>
+                                <div id="selecionadosCadMinistrantes" class="selected-list"></div>
+                                <div class="add-inline" style="margin-top: 10px;">
+                                    <select id="cadMinSelect"></select>
+                                    <button type="button" class="secondary-button" onclick="adicionarMinistranteCadastrarAvaliacao()">Adicionar</button>
+                                    <button type="button" class="primary-button" onclick="abrirModalMinistrante()" style="padding: 0 12px; font-size: 20px;" title="Criar Novo Ministrante">+</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -265,16 +287,7 @@
                             </div>
                         </div>
 
-                        <!-- MINISTRANTES -->
-                        <div class="rating-box" style="margin-top: 15px;">
-                            <div class="rating-header">
-                                <div><h3>Ministrantes</h3></div>
-                                <label class="switch"><input type="checkbox" id="cadAtivarMin" checked><span class="slider"></span></label>
-                            </div>
-                            <div id="cadCampoMinistrantes"><div id="cadNotasMinistrantesContainer"></div></div>
-                        </div>
-
-                        <!-- ORGANIZAÇÃO -->
+                        <!-- ORGANIZAÇÃO (agora ANTES dos ministrantes) -->
                         <div class="rating-box" style="margin-top: 15px;">
                             <div class="rating-header">
                                 <div><h3>Organização</h3></div>
@@ -290,6 +303,15 @@
                                 </div>
                                 <div class="resultado-preview"><span>Média: <strong id="cadOrgMediaCalc">0.00</strong></span><span id="cadOrgStatusCalc" class="badge-status">Aguardando</span></div>
                             </div>
+                        </div>
+
+                        <!-- MINISTRANTES (agora DEPOIS da organização; só aparece se o curso teve ministrante) -->
+                        <div class="rating-box" id="cadBoxNotasMinistrantes" style="margin-top: 15px;">
+                            <div class="rating-header">
+                                <div><h3>Ministrantes</h3></div>
+                                <label class="switch"><input type="checkbox" id="cadAtivarMin" checked><span class="slider"></span></label>
+                            </div>
+                            <div id="cadCampoMinistrantes"><div id="cadNotasMinistrantesContainer"></div></div>
                         </div>
 
                     </div>
@@ -528,8 +550,10 @@
                 <div class="sub-page" id="subpage-av-comentarios">
                     <div style="display: grid; grid-template-columns: 320px 1fr; gap: 20px;">
                         <div class="panel-card">
-                            <div class="panel-title"><h2>Incluir Comentário</h2></div>
+                            <div class="panel-title"><h2 id="tituloFormComentario">Incluir Comentário</h2></div>
                             <form id="formAdicionarComentario">
+                                <!-- NOVO: guarda o id do comentário quando estiver editando -->
+                                <input type="hidden" id="comentEditId">
                                 <div class="form-group"><label>Curso *</label><select id="comentCursoSelect" required></select></div>
                                 <div class="form-group">
                                     <label>Avaliação Específica</label>
@@ -541,11 +565,14 @@
                                     </select>
                                 </div>
                                 <div class="form-group"><label>Comentário *</label><textarea id="comentTextoInput" rows="4" style="width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; padding: 8px;" required placeholder="Digite o comentário recebido..."></textarea></div>
-                                <button type="submit" class="primary-button full-width">Salvar Comentário</button>
+                                <button type="submit" id="btnSalvarComentario" class="primary-button full-width">Salvar Comentário</button>
+                                <!-- NOVO: botão para cancelar a edição (aparece só ao editar) -->
+                                <button type="button" id="btnCancelarEdicaoComentario" class="secondary-button full-width" style="display: none; margin-top: 8px;">Cancelar edição</button>
                             </form>
                         </div>
                         <div class="panel-card">
                             <div class="panel-title"><h2>Comentários Registrados</h2></div>
+                            <!-- Esta caixa é a que rola (a tela não) -->
                             <div id="feedComentarios" class="comments-feed caixa-rolagem-comentarios"></div>
                         </div>
                     </div>
@@ -761,7 +788,13 @@
         </div>
         <form id="formAvaliacao">
             <div class="form-group"><label>Curso *</label><select id="avaliacaoCurso" required></select></div>
-            <div class="form-group"><label>Gerência (Usuário) *</label><select id="avaliacaoGerenciaUsuario" required></select></div>
+            <!-- Gerência em caixa de seleção com opção inicial -->
+            <div class="form-group">
+                <label>Gerência (Usuário) *</label>
+                <select id="avaliacaoGerenciaUsuario" required>
+                    <option value="">Selecione a gerência...</option>
+                </select>
+            </div>
             <div class="form-group"><label>Respostas *</label><input type="number" id="avaliacaoRespostas" min="1" required></div>
             
             <!-- 1. SATISFAÇÃO -->
@@ -817,4 +850,5 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="integra.js" defer></script>
 
+</body>
 </html>

@@ -39,6 +39,9 @@ function carregarBanco() {
         } else {
             salvarBanco();
         }
+    }, (erro) => {
+        console.error("Erro ao ler do Firebase: ", erro);
+        alert("Não foi possível ler o banco de dados. Verifique a conexão e as regras do Firestore.");
     });
 }
 
@@ -51,6 +54,12 @@ function salvarBanco() {
 
 function novoId() {
     return Date.now().toString() + Math.random().toString(16).substring(2);
+}
+
+/* Data de hoje no formato AAAA-MM-DD usando o horário LOCAL (toISOString usa UTC) */
+function dataHojeISO() {
+    const d = new Date();
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 }
 
 /* ---------- Utilitários ---------- */
@@ -137,14 +146,80 @@ function garantirSelect(id) {
     return sel;
 }
 
-function preencherSelect(select, textoInicial, itens, valorExtra) {
+function preencherSelect(select, textoInicial, itens) {
     if (!select) return;
     const valorAtual = select.value;
-    select.innerHTML = `<option value="">${textoInicial}</option>`;
+    let html = `<option value="">${textoInicial}</option>`;
     itens.forEach(i => {
-        select.innerHTML += `<option value="${i.id}">${escaparHTML(i.nome)}</option>`;
+        html += `<option value="${i.id}">${escaparHTML(i.nome)}</option>`;
     });
+    select.innerHTML = html;
     if (valorAtual && itens.some(i => i.id === valorAtual)) select.value = valorAtual;
+}
+
+/* ---------- Menu lateral (um único controle para todos os botões) ---------- */
+
+function aplicarMenuOculto(oculto) {
+    const sidebar = document.getElementById("sidebar");
+    if (sidebar) sidebar.classList.toggle("oculta", oculto);
+    document.body.classList.toggle("menu-oculto", oculto);
+}
+
+function alternarMenu() {
+    const oculto = !document.body.classList.contains("menu-oculto");
+    aplicarMenuOculto(oculto);
+    try { localStorage.setItem("menuLateralOculto", oculto ? "1" : "0"); } catch (e) {}
+}
+
+function iniciarMenuLateral() {
+    let oculto = false;
+    try { oculto = localStorage.getItem("menuLateralOculto") === "1"; } catch (e) {}
+    aplicarMenuOculto(oculto);
+}
+
+/* ---------- Interruptores (switch) e prévia das médias ---------- */
+
+const PARES_TOGGLE = [
+    ["cadAtivarSat", "cadCampoSatisfacao"],
+    ["cadAtivarOrg", "cadCampoOrganizacao"],
+    ["cadAtivarMin", "cadCampoMinistrantes"],
+    ["editarAtivarSat", "editarCampoSatisfacao"],
+    ["editarAtivarMin", "editarCampoMinistrantes"],
+    ["editarAtivarOrg", "editarCampoOrganizacao"],
+    ["ativarSatisfacao", "campoSatisfacao"],
+    ["ativarOrganizacao", "campoOrganizacao"],
+    ["ativarMinistrantes", "campoMinistrantes"]
+];
+
+function sincronizarToggles() {
+    PARES_TOGGLE.forEach(([chkId, campoId]) => {
+        const chk = document.getElementById(chkId);
+        const campo = document.getElementById(campoId);
+        if (chk && campo) campo.style.display = chk.checked ? "block" : "none";
+    });
+}
+
+const PREVIAS_VOTOS = [
+    ["calc-cadSat", "cadSatMediaCalc", "cadSatStatusCalc", "cadAvaliacaoRespostas"],
+    ["calc-cadOrg", "cadOrgMediaCalc", "cadOrgStatusCalc", "cadAvaliacaoRespostas"],
+    ["calc-edtSat", "edtSatMediaCalc", "edtSatStatusCalc", "editarAvaliacaoRespostas"],
+    ["calc-edtOrg", "edtOrgMediaCalc", "edtOrgStatusCalc", "editarAvaliacaoRespostas"]
+];
+
+function atualizarPreviaVotos(classe, mediaId, statusId, respId) {
+    let soma = 0, ponderado = 0;
+    document.querySelectorAll("." + classe).forEach((inp, idx) => {
+        const v = parseInt(inp.value) || 0;
+        soma += v;
+        ponderado += v * (idx + 1);
+    });
+    setTexto(mediaId, soma ? formatarNota(ponderado / soma) : "0,00");
+
+    const respEl = document.getElementById(respId);
+    const resp = respEl ? Number(respEl.value) || 0 : 0;
+    let status = "Aguardando";
+    if (soma > 0) status = (resp && soma !== resp) ? "Soma ≠ respostas" : "OK";
+    setTexto(statusId, status);
 }
 
 /* ---------- Modais ---------- */
@@ -190,6 +265,7 @@ function abrirModalAvaliacao() {
     if (form) form.reset();
 
     atualizarSelectCursos();
+    atualizarSelectGerencias();
 
     const sat = document.getElementById("ativarSatisfacao");
     const min = document.getElementById("ativarMinistrantes");
@@ -225,7 +301,7 @@ function validarSomaVotos(respostas, n1, n2, n3, n4, n5, categoriaNome) {
     return true;
 }
 
-/* ---------- Ministrantes no cadastro de curso (modal antigo) ---------- */
+/* ---------- Ministrantes no cadastro de curso (modal) ---------- */
 
 function adicionarMinistranteAoCurso() {
     const select = document.getElementById("cursoMinistranteSelect");
@@ -280,7 +356,7 @@ function adicionarNotaMinistrante() {
 
     linha.innerHTML = `
         <div class="ministrante-avaliacao-item" style="border: 1px solid #e5e7eb; padding: 10px; border-radius: 8px; width: 100%;">
-            <select class="nota-ministrante-nome" required style="margin-bottom: 10px; width: 100%;">${opcoes}</select>
+            <select class="nota-ministrante-nome" style="margin-bottom: 10px; width: 100%;">${opcoes}</select>
             <div class="votes-input-group" style="margin-bottom: 0;">
                 <div class="vote-col"><label>⭐ 1</label><input type="number" class="min-n1" min="0" placeholder="0"></div>
                 <div class="vote-col"><label>⭐⭐ 2</label><input type="number" class="min-n2" min="0" placeholder="0"></div>
@@ -317,16 +393,16 @@ function obterTeveMinistrante() {
 }
 
 function obterBlocoMinistrantesCad() {
-    const porId = document.getElementById("cadBlocoMinistrantes");
-    if (porId) return porId;
-    const sel = document.getElementById("cadMinSelect");
-    return sel ? sel.closest(".rating-box, .form-section, fieldset, .bloco") : null;
+    return document.getElementById("blocoCadMinistrantes");
 }
 
 function alternarBlocoMinistrantesCad() {
     const tem = obterTeveMinistrante();
     const bloco = obterBlocoMinistrantesCad();
     if (bloco) bloco.style.display = (tem === true) ? "block" : "none";
+
+    const boxNotas = document.getElementById("cadBoxNotasMinistrantes");
+    if (boxNotas) boxNotas.style.display = (tem === true) ? "block" : "none";
 
     const chk = document.getElementById("cadAtivarMin");
     if (chk) chk.checked = (tem === true);
@@ -336,6 +412,7 @@ function alternarBlocoMinistrantesCad() {
         mostrarMinistrantesCadastrarAvaliacao();
         renderizarCamposNotasMinistrantesCad();
     }
+    sincronizarToggles();
 }
 
 function adicionarMinistranteCadastrarAvaliacao() {
@@ -516,27 +593,29 @@ function abrirEditarCurso(id) {
 
     const selectGerencia = document.getElementById("editarCursoGerencia");
     if (selectGerencia) {
-        selectGerencia.innerHTML = "";
+        let html = "";
         banco.gerencias.forEach(g => {
-            selectGerencia.innerHTML += `<option value="${g.id}">${escaparHTML(g.nome)}</option>`;
+            html += `<option value="${g.id}">${escaparHTML(g.nome)}</option>`;
         });
+        selectGerencia.innerHTML = html;
         selectGerencia.value = curso.gerenciaId;
     }
 
     const selectMinistrante = document.getElementById("editarCursoMinistranteSelect");
     if (selectMinistrante) {
-        selectMinistrante.innerHTML = `<option value="">Selecione um ministrante</option>`;
+        let html = `<option value="">Selecione um ministrante</option>`;
         ministrantesOrdenados().forEach(m => {
-            selectMinistrante.innerHTML += `<option value="${m.id}">${escaparHTML(m.nome)}</option>`;
+            html += `<option value="${m.id}">${escaparHTML(m.nome)}</option>`;
         });
+        selectMinistrante.innerHTML = html;
     }
 
     document.getElementById("editarCursoId").value = curso.id;
     document.getElementById("editarCursoNome").value = curso.nome;
     document.getElementById("editarCursoDataInicio").value = curso.dataInicio || curso.data || "";
     document.getElementById("editarCursoDataFim").value = curso.dataFim || curso.data || "";
-    document.getElementById("editarCursoInscritos").value = curso.inscritos;
-    document.getElementById("editarCursoCertificados").value = curso.certificados;
+    document.getElementById("editarCursoInscritos").value = curso.inscritos || 0;
+    document.getElementById("editarCursoCertificados").value = curso.certificados || 0;
     document.getElementById("editarCursoObservacoes").value = curso.observacao || "";
 
     ministrantesEditarCurso = [...(curso.ministrantes || [])];
@@ -558,6 +637,11 @@ function abrirEditarCurso(id) {
         preencherVotosCampos(BASES_EDT_ORG, avaliacao.votosOrg);
     } else {
         if (respEl) respEl.value = "";
+        if (chkSat) chkSat.checked = true;
+        if (chkMin) chkMin.checked = true;
+        if (chkOrg) chkOrg.checked = true;
+        setTexto("edtSatMediaCalc", "0,00");
+        setTexto("edtOrgMediaCalc", "0,00");
         preencherVotosCampos(BASES_EDT_SAT, null);
         preencherVotosCampos(BASES_EDT_ORG, null);
     }
@@ -565,13 +649,14 @@ function abrirEditarCurso(id) {
     const container = document.getElementById("editarNotasMinistrantesContainer");
     if (container) container.innerHTML = "";
     renderizarCamposNotasMinistrantesEditar();
+    sincronizarToggles();
     abrirModal("modalEditarCurso");
 }
 
 /* ---------- Selects ---------- */
 
 function atualizarSelectGerencias() {
-    ["cursoGerencia", "cadCursoGerencia"].forEach(id => {
+    ["cursoGerencia", "cadCursoGerencia", "avaliacaoGerenciaUsuario"].forEach(id => {
         const select = garantirSelect(id);
         if (!select) return;
 
@@ -700,7 +785,7 @@ function formatarPeriodo(curso) {
     if (curso.dataInicio && curso.dataFim) {
         return formatarData(curso.dataInicio) + " até " + formatarData(curso.dataFim);
     } else if (curso.data) {
-        return formatarData(curso.data); 
+        return formatarData(curso.data);
     }
     return "—";
 }
@@ -719,7 +804,7 @@ function obterDataMaisRecenteLancamento() {
         else if (c.dataInicio) datas.push(c.dataInicio);
         else if (c.data) datas.push(c.data);
     });
-    if (datas.length === 0) return formatarData(new Date().toISOString().substring(0, 10));
+    if (datas.length === 0) return formatarData(dataHojeISO());
     datas.sort().reverse();
     return formatarData(datas[0]);
 }
@@ -737,6 +822,7 @@ function atualizarSistema() {
     renderizarAbaGerencias();
     popularSeletorMeses();
     renderizarGraficoEvolucao();
+    sincronizarToggles();
 }
 
 /* ---------- Visão geral ---------- */
@@ -759,6 +845,7 @@ function popularSeletorMesVisaoGeral() {
 
     if (mesesOrdenados.length === 0) {
         select.innerHTML = `<option value="">Nenhum mês</option>`;
+        mesFiltroVisaoGeral = "";
         return;
     }
 
@@ -768,7 +855,8 @@ function popularSeletorMesVisaoGeral() {
         select.innerHTML += `<option value="${mA}">${nomeFormatado}</option>`;
     });
 
-    select.value = valorAtual || mesFiltroVisaoGeral || mesesOrdenados[0] || "";
+    const candidato = valorAtual || mesFiltroVisaoGeral;
+    select.value = mesesOrdenados.includes(candidato) ? candidato : mesesOrdenados[0];
     mesFiltroVisaoGeral = select.value;
 }
 
@@ -776,11 +864,11 @@ function renderizarVisaoGeral() {
     const mesSel = mesFiltroVisaoGeral;
     const dataUltima = obterDataMaisRecenteLancamento();
 
-    document.getElementById("tituloNotasTotaisData").textContent = `NOTAS TOTAIS (ANO ATÉ: ${dataUltima})`;
+    document.getElementById("tituloNotasTotaisData").textContent = `NOTAS TOTAIS (ACUMULADO ATÉ: ${dataUltima})`;
 
     const cursosMes = banco.cursos.filter(c => {
         const dataRef = c.dataInicio || c.data;
-        return dataRef && dataRef.startsWith(mesSel);
+        return mesSel && dataRef && dataRef.startsWith(mesSel);
     });
 
     let satMesArr = [], minMesArr = [], orgMesArr = [];
@@ -818,7 +906,7 @@ function renderizarVisaoGeral() {
     }
 
     document.getElementById("vgTotalCursos").textContent = banco.cursos.length;
-    
+
     const minUnicos = new Set();
     banco.cursos.forEach(c => (c.ministrantes || []).forEach(m => minUnicos.add(m)));
     document.getElementById("vgTotalMinistrantes").textContent = minUnicos.size;
@@ -985,11 +1073,11 @@ function mostrarCursosCards() {
                         </div>
                         <div class="metric-box">
                             <span class="metric-box-label">Inscritos:</span>
-                            <strong class="metric-box-value">${curso.inscritos}</strong>
+                            <strong class="metric-box-value">${curso.inscritos || 0}</strong>
                         </div>
                         <div class="metric-box">
                             <span class="metric-box-label">Certificados:</span>
-                            <strong class="metric-box-value">${curso.certificados}</strong>
+                            <strong class="metric-box-value">${curso.certificados || 0}</strong>
                         </div>
                         <div class="metric-box">
                             <span class="metric-box-label">Respostas:</span>
@@ -1021,9 +1109,9 @@ function mostrarCursosCards() {
 function excluirMinistrante(id) {
     const m = encontrarMinistrante(id);
     if (!m) return;
-    
+
     const cursosVinculados = banco.cursos.filter(c => (c.ministrantes || []).includes(id));
-    
+
     if (cursosVinculados.length > 0) {
         const nomesCursos = cursosVinculados.map(c => c.nome).join(', ');
         if (!confirm(`O ministrante "${m.nome}" está vinculado ao(s) curso(s): ${nomesCursos}.\n\nTem certeza que deseja excluí-lo? (Ele será removido desses cursos e das notas de avaliação)`)) {
@@ -1034,13 +1122,13 @@ function excluirMinistrante(id) {
     }
 
     banco.ministrantes = banco.ministrantes.filter(item => item.id !== id);
-    
+
     banco.cursos.forEach(c => {
         if (c.ministrantes) {
             c.ministrantes = c.ministrantes.filter(mId => mId !== id);
         }
     });
-    
+
     banco.avaliacoes.forEach(a => {
         if (a.ministrantes) {
             a.ministrantes = a.ministrantes.filter(mItem => mItem.ministranteId !== id);
@@ -1050,7 +1138,7 @@ function excluirMinistrante(id) {
     ministrantesDoCurso = ministrantesDoCurso.filter(mId => mId !== id);
     ministrantesCadastrarAvaliacao = ministrantesCadastrarAvaliacao.filter(mId => mId !== id);
     ministrantesEditarCurso = ministrantesEditarCurso.filter(mId => mId !== id);
-    
+
     mostrarMinistrantesDoCurso();
     mostrarMinistrantesCadastrarAvaliacao();
     mostrarMinistrantesEditarCurso();
@@ -1080,8 +1168,8 @@ function renderizarAbaMinistrantes() {
 
         meses.forEach(mA => {
             const [ano, mes] = mA.split("-");
-            labels.push(`${nomesAbrev[parseInt(mes) - 1]}`);
-            const avg = dadosMensais[mA].length ? (dadosMensais[mA].reduce((a, b) => a + b, 0) / dadosMensais[mA].length).toFixed(2) : null;
+            labels.push(`${nomesAbrev[parseInt(mes) - 1]}/${ano.substring(2)}`);
+            const avg = dadosMensais[mA].length ? Number((dadosMensais[mA].reduce((a, b) => a + b, 0) / dadosMensais[mA].length).toFixed(2)) : null;
             valores.push(avg);
         });
 
@@ -1142,7 +1230,7 @@ function renderizarAbaMinistrantes() {
 
                     <div class="ministrante-card-details-body" id="detailsMin-${m.id}" style="display:none; padding: 12px; border-top: 1px solid #e2e8f0; background: #f8fafc;">
                         <strong style="font-size: 12px; color: #475569; display: block; margin-bottom: 8px;">Cursos Ministrados e Notas:</strong>
-                        ${cursosM.length === 0 ? '<span style="font-size:12px; color:#94a3b8;">Nenhum curso associado.</span>' : 
+                        ${cursosM.length === 0 ? '<span style="font-size:12px; color:#94a3b8;">Nenhum curso associado.</span>' :
                             cursosM.map(c => {
                                 const av = banco.avaliacoes.find(a => a.cursoId === c.id);
                                 let notaC = "—";
@@ -1158,7 +1246,7 @@ function renderizarAbaMinistrantes() {
                                 `;
                             }).join("")
                         }
-                        
+
                         <div style="margin-top: 12px; border-top: 1px dashed #cbd5e1; padding-top: 12px; text-align: right;">
                             <button type="button" class="action-btn delete-btn" style="padding: 6px 12px; font-size: 12px;" onclick="excluirMinistrante('${m.id}')">🗑 Excluir Ministrante</button>
                         </div>
@@ -1211,6 +1299,9 @@ function montarCardComentario(c) {
 function renderizarFeedsComentarios() {
     const feed = document.getElementById("feedComentarios");
     const feedObs = document.getElementById("feedObservacoes");
+
+    // não redesenha enquanto o usuário digita uma edição (evita perder o texto)
+    if (comentarioEmEdicao && document.getElementById("editComent-" + comentarioEmEdicao)) return;
 
     if (feed) {
         feed.classList.add("caixa-rolagem-comentarios");
@@ -1271,8 +1362,8 @@ function renderizarAbaAvaliacoes() {
         const nomesMeses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
         cardsMensalMin.innerHTML = Object.keys(dadosM).sort().reverse().map(mA => {
             const [ano, mes] = mA.split("-");
-            const nomeMes = `${nomesMeses[parseInt(mes) - 1]}`;
-            const avg = dadosM[mA].notas.length ? (dadosM[mA].notas.reduce((a,b)=>a+b,0)/dadosM[mA].notas.length) : null;
+            const nomeMes = `${nomesMeses[parseInt(mes) - 1]} ${ano}`;
+            const avg = dadosM[mA].notas.length ? (dadosM[mA].notas.reduce((a, b) => a + b, 0) / dadosM[mA].notas.length) : null;
             return `
                 <div class="stat-card">
                     <strong>${nomeMes}</strong>
@@ -1314,8 +1405,8 @@ function renderizarSubAbaCategoria(prefixo, categoria, elNota, elResp, elMes, el
     if (areaMes) {
         areaMes.innerHTML = Object.keys(dadosM).sort().reverse().map(mA => {
             const [ano, mes] = mA.split("-");
-            const avg = dadosM[mA].length ? (dadosM[mA].reduce((a,b)=>a+b,0)/dadosM[mA].length) : null;
-            return `<div class="score-row"><span>${nomesAbrev[parseInt(mes)-1]}</span><strong>${formatarNota(avg)}</strong></div>`;
+            const avg = dadosM[mA].length ? (dadosM[mA].reduce((a, b) => a + b, 0) / dadosM[mA].length) : null;
+            return `<div class="score-row"><span>${nomesAbrev[parseInt(mes) - 1]}/${ano.substring(2)}</span><strong>${formatarNota(avg)}</strong></div>`;
         }).join("");
     }
 
@@ -1328,7 +1419,7 @@ function renderizarSubAbaCategoria(prefixo, categoria, elNota, elResp, elMes, el
                 const mCat = mediaDoCurso(c.id, categoria);
                 if (mCat !== null) vals.push(mCat);
             });
-            const avg = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length) : null;
+            const avg = vals.length ? (vals.reduce((a, b) => a + b, 0) / vals.length) : null;
             return `<div class="score-row"><span>${escaparHTML(g.nome)}</span><strong>${formatarNota(avg)}</strong></div>`;
         }).join("");
     }
@@ -1340,8 +1431,8 @@ function renderizarSubAbaCategoria(prefixo, categoria, elNota, elResp, elMes, el
         const labels = [], serie = [];
         meses.forEach(mA => {
             const [ano, mes] = mA.split("-");
-            labels.push(nomesAbrev[parseInt(mes)-1]);
-            const avg = dadosM[mA].length ? (dadosM[mA].reduce((a,b)=>a+b,0)/dadosM[mA].length).toFixed(2) : null;
+            labels.push(nomesAbrev[parseInt(mes) - 1] + "/" + ano.substring(2));
+            const avg = dadosM[mA].length ? Number((dadosM[mA].reduce((a, b) => a + b, 0) / dadosM[mA].length).toFixed(2)) : null;
             serie.push(avg);
         });
 
@@ -1440,14 +1531,14 @@ function renderizarAbaGerencias() {
         const nomesAbrev = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
         const labels = meses.map(mA => {
             const [ano, mes] = mA.split("-");
-            return nomesAbrev[parseInt(mes) - 1];
+            return nomesAbrev[parseInt(mes) - 1] + "/" + ano.substring(2);
         });
 
         const datasets = banco.gerencias.map((g, idx) => {
             const cores = ['#4f46e5', '#06b6d4', '#f59e0b', '#10b981'];
             const valores = meses.map(mA => {
                 const arr = dadosMensais[mA][g.id] || [];
-                return arr.length ? (arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(2) : 0;
+                return arr.length ? Number((arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(2)) : null;
             });
             return {
                 label: g.nome,
@@ -1524,6 +1615,7 @@ function popularSeletorMeses() {
     const select = document.getElementById("seletorMesDetalhe");
     if (!select) return;
 
+    const valorAtual = select.value;
     select.innerHTML = "";
     const mesesSet = new Set();
     banco.cursos.forEach(c => {
@@ -1542,6 +1634,8 @@ function popularSeletorMeses() {
         const [ano, mes] = mA.split("-");
         select.innerHTML += `<option value="${mA}">${nomesMeses[parseInt(mes) - 1]} ${ano}</option>`;
     });
+
+    if (valorAtual && mesesOrdenados.includes(valorAtual)) select.value = valorAtual;
 }
 
 function renderizarGraficoEvolucao() {
@@ -1580,7 +1674,7 @@ function renderizarGraficoEvolucao() {
             if (ger !== null) totalGeral.push(ger);
         });
 
-        const avg = arr => arr.length > 0 ? (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(2) : null;
+        const avg = arr => arr.length > 0 ? Number((arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(2)) : null;
         serieMediaGeral.push(avg(totalGeral));
         serieSatisfacao.push(avg(totalSat));
         serieMinistrantes.push(avg(totalMin));
@@ -1685,8 +1779,8 @@ function verDetalhesDoMes() {
                                 <td><strong>${escaparHTML(c.nome)}</strong></td>
                                 <td class="rating-number">${formatarNota(mediaC)}</td>
                                 <td>${gerObj ? escaparHTML(gerObj.nome) : "—"}</td>
-                                <td>${c.inscritos}</td>
-                                <td>${c.certificados}</td>
+                                <td>${c.inscritos || 0}</td>
+                                <td>${c.certificados || 0}</td>
                                 <td>${resp}</td>
                                 <td><strong>${txc}</strong></td>
                             </tr>
@@ -1710,6 +1804,7 @@ function excluirCurso(id) {
     if (!confirm("Tem certeza que deseja excluir este curso?")) return;
     banco.cursos = banco.cursos.filter(c => c.id !== id);
     banco.avaliacoes = banco.avaliacoes.filter(a => a.cursoId !== id);
+    banco.comentarios = banco.comentarios.filter(c => c.cursoId !== id);
     salvarBanco();
     atualizarSistema();
 }
@@ -1717,39 +1812,6 @@ function excluirCurso(id) {
 function escaparHTML(texto) {
     if (texto === null || texto === undefined) return "";
     return String(texto).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
-}
-
-/* ---------- Menu lateral fixo e ocultável ---------- */
-
-function iniciarMenuLateral() {
-    const sidebar = document.querySelector(".sidebar");
-    if (!sidebar) return;
-
-    let btn = document.getElementById("btnToggleMenu");
-    if (!btn) {
-        btn = document.createElement("button");
-        btn.id = "btnToggleMenu";
-        btn.type = "button";
-        btn.className = "btn-toggle-menu";
-        document.body.appendChild(btn);
-    }
-
-    const aplicar = (oculto) => {
-        sidebar.classList.toggle("oculta", oculto);
-        document.body.classList.toggle("menu-oculto", oculto);
-        btn.textContent = oculto ? "☰" : "✕";
-        btn.title = oculto ? "Mostrar menu" : "Ocultar menu";
-    };
-
-    let oculto = false;
-    try { oculto = localStorage.getItem("menuLateralOculto") === "1"; } catch (e) {}
-    aplicar(oculto);
-
-    btn.addEventListener("click", function () {
-        oculto = !oculto;
-        aplicar(oculto);
-        try { localStorage.setItem("menuLateralOculto", oculto ? "1" : "0"); } catch (e) {}
-    });
 }
 
 /* ============================================================
@@ -1811,6 +1873,21 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     alternarBlocoMinistrantesCad();
 
+    /* Interruptores (switch) e prévia das médias */
+    PARES_TOGGLE.forEach(([chkId]) => {
+        const chk = document.getElementById(chkId);
+        if (chk) chk.addEventListener("change", sincronizarToggles);
+    });
+    sincronizarToggles();
+
+    document.addEventListener("input", function (e) {
+        const t = e.target;
+        if (!t || !t.classList) return;
+        PREVIAS_VOTOS.forEach(p => {
+            if (t.classList.contains(p[0]) || t.id === p[3]) atualizarPreviaVotos(p[0], p[1], p[2], p[3]);
+        });
+    });
+
     /* Comentários */
     const formComent = document.getElementById("formAdicionarComentario");
     if (formComent) {
@@ -1827,7 +1904,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 cursoId: cursoId,
                 tipo: tipo,
                 texto: texto,
-                data: formatarData(new Date().toISOString().substring(0, 10))
+                data: formatarData(dataHojeISO())
             });
 
             salvarBanco();
@@ -1852,13 +1929,121 @@ document.addEventListener("DOMContentLoaded", function () {
                 cursoId: cursoId,
                 tipo: "Observação",
                 texto: texto,
-                data: formatarData(new Date().toISOString().substring(0, 10))
+                data: formatarData(dataHojeISO())
             });
 
             salvarBanco();
             formObs.reset();
             atualizarSistema();
             alert("Observação salva! Ela já aparece na aba Cursos.");
+        });
+    }
+
+    /* Novo curso (modal) */
+    const formCursoEl = document.getElementById("formCurso");
+    if (formCursoEl) {
+        formCursoEl.addEventListener("submit", function (e) {
+            e.preventDefault();
+            const nome = document.getElementById("cursoNome").value.trim();
+            const gerenciaId = document.getElementById("cursoGerencia").value;
+            const dataInicio = document.getElementById("cursoDataInicio").value;
+            const dataFim = document.getElementById("cursoDataFim").value;
+            const inscritos = Number(document.getElementById("cursoInscritos").value) || 0;
+            const certificados = Number(document.getElementById("cursoCertificados").value) || 0;
+            const observacao = document.getElementById("cursoObservacoes").value.trim();
+
+            if (!nome || !gerenciaId || !dataInicio || !dataFim) { alert("Preencha todos os campos obrigatórios."); return; }
+            if (dataFim < dataInicio) { alert("A data de fim não pode ser anterior à data de início."); return; }
+            if (ministrantesDoCurso.length === 0) { alert("Adicione pelo menos um ministrante ao curso."); return; }
+
+            const novoCurso = {
+                id: novoId(), nome: nome, gerenciaId: gerenciaId, dataInicio: dataInicio, dataFim: dataFim,
+                inscritos: inscritos, certificados: certificados,
+                ministrantes: [...ministrantesDoCurso], temMinistrante: true
+            };
+            if (observacao) novoCurso.observacao = observacao;
+            banco.cursos.push(novoCurso);
+
+            ministrantesDoCurso = [];
+            salvarBanco();
+            fecharModal("modalCurso");
+            atualizarSistema();
+        });
+    }
+
+    /* Nova avaliação isolada (modal) */
+    const formAvalEl = document.getElementById("formAvaliacao");
+    if (formAvalEl) {
+        formAvalEl.addEventListener("submit", function (e) {
+            e.preventDefault();
+            const cursoId = document.getElementById("avaliacaoCurso").value;
+            const gerenciaUsuarioId = document.getElementById("avaliacaoGerenciaUsuario").value;
+            const respostas = Number(document.getElementById("avaliacaoRespostas").value);
+
+            if (!cursoId || !gerenciaUsuarioId || !(respostas >= 1)) {
+                alert("Preencha curso, gerência e quantidade de respostas."); return;
+            }
+            if (banco.avaliacoes.some(a => a.cursoId === cursoId)) {
+                alert("Este curso já possui avaliação. Use o botão Editar na aba Cursos para alterá-la."); return;
+            }
+
+            const ler = prefixo => [1, 2, 3, 4, 5].map(n => parseInt(document.getElementById(prefixo + n).value) || 0);
+            let satisfacao = null, organizacao = null, votosSat = null, votosOrg = null;
+            const notasMinistrantes = [];
+
+            if (document.getElementById("ativarSatisfacao").checked) {
+                const v = ler("satNota");
+                if (!validarSomaVotos(respostas, v[0], v[1], v[2], v[3], v[4], "Satisfação")) return;
+                satisfacao = mediaDosVotos(v, respostas); votosSat = v;
+            }
+
+            if (document.getElementById("ativarOrganizacao").checked) {
+                const v = ler("orgNota");
+                if (!validarSomaVotos(respostas, v[0], v[1], v[2], v[3], v[4], "Organização")) return;
+                organizacao = mediaDosVotos(v, respostas); votosOrg = v;
+            }
+
+            if (document.getElementById("ativarMinistrantes").checked) {
+                const linhas = document.querySelectorAll("#notasMinistrantes .nota-ministrante");
+                const usados = new Set();
+                let erro = false;
+
+                linhas.forEach(linha => {
+                    if (erro) return;
+                    const mId = linha.querySelector(".nota-ministrante-nome").value;
+                    const v = [1, 2, 3, 4, 5].map(n => parseInt(linha.querySelector(".min-n" + n).value) || 0);
+                    const vazio = v.every(x => x === 0);
+
+                    if (!mId && vazio) return;
+                    if (!mId) { alert("Selecione o ministrante em todas as linhas preenchidas."); erro = true; return; }
+                    if (usados.has(mId)) { alert("Há um ministrante repetido na lista."); erro = true; return; }
+                    usados.add(mId);
+
+                    const mObj = banco.ministrantes.find(i => i.id === mId);
+                    if (!validarSomaVotos(respostas, v[0], v[1], v[2], v[3], v[4], `Ministrante: ${mObj ? mObj.nome : ''}`)) { erro = true; return; }
+                    notasMinistrantes.push({ ministranteId: mId, nota: mediaDosVotos(v, respostas), votos: v });
+                });
+
+                if (erro) return;
+                if (notasMinistrantes.length === 0) {
+                    alert("Adicione pelo menos um ministrante com votos ou desligue a opção Ministrantes."); return;
+                }
+            }
+
+            if (satisfacao === null && organizacao === null && notasMinistrantes.length === 0) {
+                alert("Ative e preencha pelo menos uma categoria de avaliação."); return;
+            }
+
+            banco.avaliacoes.push({
+                id: novoId(), cursoId: cursoId, gerenciaUsuarioId: gerenciaUsuarioId, respostas: respostas,
+                satisfacao: satisfacao, organizacao: organizacao, ministrantes: notasMinistrantes,
+                votosSat: votosSat, votosOrg: votosOrg
+            });
+
+            salvarBanco();
+            fecharModal("modalAvaliacao");
+            atualizarSistema();
+            alert("Avaliação salva com sucesso!");
         });
     }
 
@@ -1909,7 +2094,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 votosOrg = v;
             }
 
-            if (teveMin) {
+            const chkMinCad = document.getElementById("cadAtivarMin");
+            if (teveMin && (!chkMinCad || chkMinCad.checked)) {
                 const itens = document.querySelectorAll(".ministrante-cad-item");
                 let erroMin = false;
 
@@ -1967,8 +2153,8 @@ document.addEventListener("DOMContentLoaded", function () {
             const observacoes = document.getElementById("editarCursoObservacoes").value.trim();
 
             if (!nome || !gerenciaId || !dataInicio || !dataFim) {
-                alert("Preencha todos os campos obrigatórios."); 
-                return; 
+                alert("Preencha todos os campos obrigatórios.");
+                return;
             }
 
             const curso = banco.cursos.find(c => c.id === id);
@@ -2050,11 +2236,11 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             // Tudo validado: agora sim aplica as alterações
-            curso.nome = nome; 
-            curso.gerenciaId = gerenciaId; 
+            curso.nome = nome;
+            curso.gerenciaId = gerenciaId;
             curso.dataInicio = dataInicio;
-            curso.dataFim = dataFim; 
-            curso.inscritos = inscritos; 
+            curso.dataFim = dataFim;
+            curso.inscritos = inscritos;
             curso.certificados = certificados;
             curso.ministrantes = [...ministrantesEditarCurso];
             curso.temMinistrante = ministrantesEditarCurso.length > 0;
@@ -2114,12 +2300,14 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    /* Limpar dados: apaga também no Firebase (confirmação dupla) */
     const btnLimpar = document.getElementById("btnLimparDados");
-    if (btnLimpar) {
+    if (btnLimpar) {Pasta sem nomeOficina de IA para gestores - MOTRIZ
         btnLimpar.addEventListener("click", function () {
-            if (!confirm("Tem certeza que deseja apagar todos os dados?")) return;
-            localStorage.removeItem("AvaliaCursosDados");
+            if (!confirm("Tem certeza que deseja apagar TODOS os dados? Isso também apaga no banco online e não pode ser desfeito.")) return;
+            if (!confirm("Confirmação final: apagar tudo mesmo?")) return;
             banco = { cursos: [], ministrantes: [], gerencias: [], avaliacoes: [], comentarios: [] };
+            salvarBanco();
             atualizarSistema();
         });
     }

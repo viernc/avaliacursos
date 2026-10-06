@@ -17,12 +17,14 @@ body {
 
 .app {
     display: flex;
-    min-height: 100vh;
+    height: 100vh; 
+    overflow: hidden; 
 }
 
 /* ============================================================
    2. MENU LATERAL (SIDEBAR) & ÍCONES VETORIAIS
    ============================================================ */
+
 .sidebar {
     width: 260px;
     background-color: #0f172a;
@@ -31,6 +33,20 @@ body {
     flex-direction: column;
     padding: 20px 15px;
     flex-shrink: 0;
+    height: 100vh;
+    overflow-y: auto; 
+    transition: margin-left 0.3s ease;
+}
+
+.sidebar.oculta {
+    margin-left: -260px;
+}
+
+.main-content {
+    flex: 1;
+    padding: 25px 35px;
+    height: 100vh;
+    overflow-y: auto; 
 }
 
 .brand {
@@ -823,3 +839,27 @@ input:checked + .slider:before {
     color: #4f46e5;
     margin: 8px 0;
 }
+
+.caixa-rolagem-comentarios {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 15px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+.input-maiusculo {
+    text-transform: uppercase;
+}
+
+.btn-editar-comentario {
+    background: none;
+    border: none;
+    color: #4f46e5;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 8px;
+}
+.btn-editar-comentario:hover { text-decoration: underline; }

@@ -2304,8 +2304,17 @@ document.addEventListener("DOMContentLoaded", function () {
     btnLimpar.addEventListener("click", function () {
         if (!confirm("Tem certeza que deseja apagar TODOS os dados? Isso também apaga no banco online e não pode ser desfeito.")) return;
         if (!confirm("Confirmação final: apagar tudo mesmo?")) return;
-        banco = { cursos: [], ministrantes: [], gerencias: [], avaliacoes: [], comentarios: [] };
+
+        banco = {
+            cursos: [],
+            ministrantes: [],
+            gerencias: [],
+            avaliacoes: [],
+            comentarios: []
+        };
+
         salvarBanco();
         atualizarSistema();
     });
 }
+});

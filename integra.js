@@ -247,6 +247,20 @@ function abrirModalCurso() {
 function abrirModalMinistrante() {
     const form = document.getElementById("formMinistrante");
     if (form) form.reset();
+    document.getElementById("ministranteEditId").value = "";
+    setTexto("tituloModalMinistrante", "Novo ministrante");
+    abrirModal("modalMinistrante");
+}
+
+function editarMinistrante(id) {
+    const m = encontrarMinistrante(id);
+    if (!m) return;
+
+    const form = document.getElementById("formMinistrante");
+    if (form) form.reset();
+    document.getElementById("ministranteEditId").value = id;
+    document.getElementById("ministranteNome").value = m.nome;
+    setTexto("tituloModalMinistrante", "Editar ministrante");
     abrirModal("modalMinistrante");
 }
 

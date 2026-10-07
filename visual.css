@@ -1027,3 +1027,46 @@ input:checked + .slider:before {
     background: #cbd5e1;
     border-radius: 8px;
 }
+
+/* "Estatísticas Mensais (Evolução por Mês)" (caixa com rolagem própria) */
+#cardsAvMinistrantesMensal {
+    max-height: 320px;      /* altura da caixa: ajuste como preferir */
+    overflow-y: auto;
+    padding: 4px 6px 4px 4px;
+    align-content: start;   /* os cards não esticam quando há poucos meses */
+}
+
+#cardsAvMinistrantesMensal::-webkit-scrollbar {
+    width: 8px;
+}
+
+#cardsAvMinistrantesMensal::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 8px;
+}
+
+/* Tabela "Média Geral dos Ministrantes por Nome" (caixa com rolagem própria) */
+#tabelaAvMinistrantesNomes {
+    max-height: 420px;      /* altura da caixa: ajuste como preferir */
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+/* Cabeçalho fixo: continua visível enquanto a lista rola */
+#tabelaAvMinistrantesNomes th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #f8fafc;
+    box-shadow: inset 0 -1px 0 #e2e8f0; /* a borda de baixo some no sticky, então recriei com sombra */
+}
+
+#tabelaAvMinistrantesNomes::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+#tabelaAvMinistrantesNomes::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 8px;
+}

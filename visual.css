@@ -1066,6 +1066,61 @@ input:checked + .slider:before {
     height: 8px;
 }
 
+/* Cursos por Gerência: uma caixa com rolagem para cada gerência */
+.gerencia-tabela-bloco {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.gerencia-tabela-bloco:last-child {
+    margin-bottom: 0;
+}
+
+.gerencia-tabela-titulo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #eef2ff;
+    color: #3730a3;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.gerencia-tabela-titulo strong {
+    font-size: 14px;
+}
+
+.gerencia-tabela-titulo span {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.gerencia-tabela-rolagem {
+    max-height: 360px;      /* altura de cada caixa: ajuste como preferir */
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+/* Cabeçalho fixo enquanto a lista rola */
+.gerencia-tabela-rolagem th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #f8fafc;
+    box-shadow: inset 0 -1px 0 #e2e8f0;
+}
+
+.gerencia-tabela-rolagem::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.gerencia-tabela-rolagem::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 8px;
+}
 #tabelaAvMinistrantesNomes::-webkit-scrollbar-thumb {
     background: #cbd5e1;
     border-radius: 8px;

@@ -1261,8 +1261,9 @@ function renderizarAbaMinistrantes() {
                             }).join("")
                         }
 
-                        <div style="margin-top: 12px; border-top: 1px dashed #cbd5e1; padding-top: 12px; text-align: right;">
-                            <button type="button" class="action-btn delete-btn" style="padding: 6px 12px; font-size: 12px;" onclick="excluirMinistrante('${m.id}')">🗑 Excluir Ministrante</button>
+                         <div style="margin-top: 12px; border-top: 1px dashed #cbd5e1; padding-top: 12px; display: flex; justify-content: flex-end; gap: 8px;">
+                            <button type="button" class="action-btn edit-btn" style="flex: none; padding: 6px 12px; font-size: 12px;" onclick="editarMinistrante('${m.id}')">✎ Editar Nome</button>
+                            <button type="button" class="action-btn delete-btn" style="flex: none; padding: 6px 12px; font-size: 12px;" onclick="excluirMinistrante('${m.id}')">🗑 Excluir Ministrante</button>
                         </div>
 
                     </div>
@@ -2276,21 +2277,29 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    /* Ministrante: salva SEMPRE em maiúsculo */
+   /* Ministrante: cria ou edita, salvando SEMPRE em maiúsculo */
     const formMin = document.getElementById("formMinistrante");
     if (formMin) {
         formMin.addEventListener("submit", function (e) {
             e.preventDefault();
             const nome = document.getElementById("ministranteNome").value.trim().toUpperCase();
+            const editId = document.getElementById("ministranteEditId").value;
             if (!nome) return;
 
-            const existe = banco.ministrantes.some(m => m.nome.toLowerCase() === nome.toLowerCase());
+            const existe = banco.ministrantes.some(m => m.id !== editId && m.nome.toLowerCase() === nome.toLowerCase());
             if (existe) {
                 alert("Este ministrante já está cadastrado.");
                 return;
             }
 
-            banco.ministrantes.push({ id: novoId(), nome: nome });
+            if (editId) {
+                const m = banco.ministrantes.find(item => item.id === editId);
+                if (!m) return;
+                m.nome = nome;
+            } else {
+                banco.ministrantes.push({ id: novoId(), nome: nome });
+            }
+
             salvarBanco();
             fecharModal("modalMinistrante");
             atualizarSistema();

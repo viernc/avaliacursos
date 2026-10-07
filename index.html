@@ -739,22 +739,23 @@
     </div>
 
     <!-- MODAL MINISTRANTE (USADO COMO ATALHO TAMBÉM) -->
-    <div class="modal-overlay" id="modalMinistrante" style="z-index: 1050;">
-        <div class="modal modal-small">
-            <div class="modal-header">
-                <h2>Novo ministrante</h2>
-                <button type="button" class="close-button" onclick="fecharModal('modalMinistrante')">×</button>
-            </div>
-            <form id="formMinistrante">
-                <div class="form-group"><label>Nome *</label><input type="text" id="ministranteNome" class="input-maiusculo" required></div>
-                <div class="modal-actions">
-                    <button type="button" class="secondary-button" onclick="fecharModal('modalMinistrante')">Cancelar</button>
-                    <button type="submit" class="primary-button">Salvar</button>
-                </div>
-            </form>
+<div class="modal-overlay" id="modalMinistrante" style="z-index: 1050;">
+    <div class="modal modal-small">
+        <div class="modal-header">
+            <h2 id="tituloModalMinistrante">Novo ministrante</h2>
+            <button type="button" class="close-button" onclick="fecharModal('modalMinistrante')">×</button>
         </div>
+        <form id="formMinistrante">
+            <input type="hidden" id="ministranteEditId">
+            <div class="form-group"><label>Nome *</label><input type="text" id="ministranteNome" class="input-maiusculo" required></div>
+            <div class="modal-actions">
+                <button type="button" class="secondary-button" onclick="fecharModal('modalMinistrante')">Cancelar</button>
+                <button type="submit" class="primary-button">Salvar</button>
+            </div>
+        </form>
     </div>
-
+</div>
+    
     <div class="modal-overlay" id="modalGerencia">
         <div class="modal modal-small">
             <div class="modal-header">

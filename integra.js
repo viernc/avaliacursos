@@ -1591,38 +1591,48 @@ function renderizarAbaGerencias() {
 
     const tabelaG = document.getElementById("tabelaCursosPorGerenciaHistorico");
     if (tabelaG) {
-        tabelaG.innerHTML = `
-            <table>
-                <thead>
-                    <tr>
-                        <th>Gerência</th>
-                        <th>Curso</th>
-                        <th>Satisfação</th>
-                        <th>Ministrantes</th>
-                        <th>Organização</th>
-                        <th>Média do curso</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${banco.gerencias.map(g => {
-                        const cursosG = banco.cursos.filter(c => c.gerenciaId === g.id);
-                        if (cursosG.length === 0) {
-                            return `<tr><td><strong>${escaparHTML(g.nome)}</strong></td><td colspan="5">Nenhum curso cadastrado.</td></tr>`;
-                        }
-                        return cursosG.map(c => `
-                            <tr>
-                                <td>${escaparHTML(g.nome)}</td>
-                                <td>${escaparHTML(c.nome)}</td>
-                                <td class="rating-number">${formatarNota(mediaDoCurso(c.id, "satisfacao"))}</td>
-                                <td class="rating-number">${formatarNota(mediaDoCurso(c.id, "ministrantes"))}</td>
-                                <td class="rating-number">${formatarNota(mediaDoCurso(c.id, "organizacao"))}</td>
-                                <td class="rating-number">${formatarNota(mediaGeralDoCurso(c.id))}</td>
-                            </tr>
-                        `).join("");
-                    }).join("")}
-                </tbody>
-            </table>
-        `;
+        if (banco.gerencias.length === 0) {
+            tabelaG.innerHTML = `<div class="empty-state">Nenhuma gerência cadastrada.</div>`;
+        } else {
+            tabelaG.innerHTML = banco.gerencias.map(g => {
+                const cursosG = banco.cursos.filter(c => c.gerenciaId === g.id);
+
+                const linhas = cursosG.length === 0
+                    ? `<tr><td colspan="5">Nenhum curso cadastrado.</td></tr>`
+                    : cursosG.map(c => `
+                        <tr>
+                            <td>${escaparHTML(c.nome)}</td>
+                            <td class="rating-number">${formatarNota(mediaDoCurso(c.id, "satisfacao"))}</td>
+                            <td class="rating-number">${formatarNota(mediaDoCurso(c.id, "ministrantes"))}</td>
+                            <td class="rating-number">${formatarNota(mediaDoCurso(c.id, "organizacao"))}</td>
+                            <td class="rating-number">${formatarNota(mediaGeralDoCurso(c.id))}</td>
+                        </tr>
+                    `).join("");
+
+                return `
+                    <div class="gerencia-tabela-bloco">
+                        <div class="gerencia-tabela-titulo">
+                            <strong>${escaparHTML(g.nome)}</strong>
+                            <span>${cursosG.length} curso(s)</span>
+                        </div>
+                        <div class="gerencia-tabela-rolagem">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Curso</th>
+                                        <th>Satisfação</th>
+                                        <th>Ministrantes</th>
+                                        <th>Organização</th>
+                                        <th>Média do curso</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${linhas}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
     }
 }
 

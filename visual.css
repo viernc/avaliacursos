@@ -1125,3 +1125,128 @@ input:checked + .slider:before {
     background: #cbd5e1;
     border-radius: 8px;
 }
+
+/* ============================================================
+   13. NOVO: IDENTIDADE VISUAL (Governo do Piauí / EGEPI)
+   ============================================================ */
+:root {
+    --azul: #1b4f9c;
+    --azul-escuro: #0f2f63;
+    --verde: #2e7d32;
+    --amarelo: #f4b400;
+}
+
+.sidebar { background-color: var(--azul-escuro); }
+.menu-item:hover { background-color: rgba(255, 255, 255, 0.10); }
+.menu-item.active { background-color: var(--verde); }
+.brand { border-bottom-color: rgba(255, 255, 255, 0.15); }
+.brand-logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #fff;
+    padding: 2px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+.btn-ocultar-menu { background: rgba(255, 255, 255, 0.12); }
+.btn-ocultar-menu:hover { background: var(--amarelo); color: #0f172a; }
+
+.primary-button { background: var(--azul); }
+.primary-button:hover { background: var(--azul-escuro); }
+.indicator-value.highlight,
+.rating-number,
+.management-score,
+.metric-box-value.highlight,
+.form-section-title,
+.ranking-score { color: var(--azul); }
+.sub-nav-tab.active { color: var(--verde); border-bottom-color: var(--verde); }
+.btn-editar-comentario { color: var(--azul); }
+input:checked + .slider { background-color: var(--verde); }
+.selected-tag { background: #e3edfa; color: var(--azul-escuro); }
+.gerencia-tabela-titulo { background: #e3edfa; color: var(--azul-escuro); }
+
+/* Barra superior com as logos e faixa nas 3 cores */
+.topbar {
+    background: #fff;
+    padding: 14px 20px; /* Aumentei levemente o padding vertical e horizontal */
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    border-bottom: 4px solid var(--verde);
+    box-shadow: 0 4px 0 -1px var(--amarelo);
+    gap: 12px;
+    flex-wrap: wrap;
+    display: flex;
+    align-items: center; /* Garante o alinhamento vertical perfeito com os outros itens */
+}
+
+.topbar-left,
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.topbar-logo {
+    height: 115px; /* Podes ajustar este valor (ex: 55px, 60px ou 65px) */
+    width: auto;
+    object-fit: contain;
+}
+
+.ano-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ano-label select {
+    padding: 6px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.badge-ano-fechado {
+    align-items: center;
+    background: #fef3c7;
+    color: #92400e;
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* Ano fechado: só consulta */
+body.ano-fechado .edit-btn,
+body.ano-fechado .delete-btn,
+body.ano-fechado .btn-editar-comentario {
+    display: none;
+}
+
+/* Carga horária dos ministrantes */
+.horas-barra {
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 6px 0 4px;
+}
+
+.horas-barra span {
+    display: block;
+    height: 100%;
+    background: var(--verde);
+    border-radius: 8px;
+}
+
+.horas-barra.alerta span { background: var(--amarelo); }
+.horas-barra.excedido span { background: #dc2626; }
+
+.horas-detalhe {
+    font-size: 11px;
+    color: #64748b;
+}

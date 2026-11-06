@@ -15,13 +15,11 @@
         <aside id="sidebar" class="sidebar">
 
             <div class="brand">
-                <div class="brand-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-                </div>
-                <div>
-                    <strong>AvaliaCursos</strong>
-                    <span>Gestão de Avaliações EGEPI</span>
-                </div>
+                <img src="logo-egepi" alt="Logo" class="brand-logo">
+                <div class="brand-info">
+        <span class="brand-title"> <strong>Escola de Governo do Piauí</strong></span>
+        <span class="brand-subtitle">AvaliaCursos - Gestão de Avaliações</span>
+    </div>
                 <button type="button" id="btnOcultarMenu" class="btn-ocultar-menu" title="Ocultar menu" onclick="alternarMenu()">‹</button>
             </div>
 
@@ -91,12 +89,21 @@
         <main class="main-content">
 
             <header class="topbar">
-                <div>
+                <div class="topbar-left">
                     <button type="button" class="secondary-button" onclick="alternarMenu()">☰ Menu</button>
+                    <img src="logo-governo" alt="Escola de Governo do Piauí, SEAD e Governo do Piauí" class="topbar-logo">
                 </div>
-                <div class="system-status">
-                    <span class="status-dot"></span>
-                    Sistema ativo
+                <div class="topbar-right">
+                    <label class="ano-label">Ano:
+                        <select id="seletorAno"></select>
+                    </label>
+                    <span id="badgeAnoFechado" class="badge-ano-fechado" style="display:none;">🔒 Ano fechado</span>
+                    <button type="button" class="secondary-button" id="btnFecharAno">🔒 Fechar ano</button>
+                    <button type="button" class="primary-button" id="btnRelatorioExcel">📥 Relatório Excel</button>
+                    <div class="system-status">
+                        <span class="status-dot"></span>
+                        Sistema ativo
+                    </div>
                 </div>
             </header>
 
@@ -232,6 +239,10 @@
                         <div class="form-row">
                             <div class="form-group"><label>Inscritos</label><input type="number" id="cadCursoInscritos" min="0" placeholder="0"></div>
                             <div class="form-group"><label>Certificados</label><input type="number" id="cadCursoCertificados" min="0" placeholder="0"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Carga horária (h)</label>
+                            <input type="number" id="cadCursoCargaHoraria" min="0" step="0.5" placeholder="0">
                         </div>
                         <div class="form-group">
                             <label>Observações do Curso</label>
@@ -452,8 +463,8 @@
                     <div class="panel-card">
                         <div class="panel-title">
                             <div>
-                                <h2>Ranking de Melhores Avaliados (Notas 1-5)</h2>
-                                <p>Média histórica baseada em todas as avaliações</p>
+                                <h2>Carga Horária dos Ministrantes</h2>
+                                <p>Horas utilizadas no ano (limite padrão de 120 h)</p>
                             </div>
                         </div>
                         <div id="rankingMinistrantesLista" class="ranking-list"></div>
@@ -635,6 +646,11 @@
                 </div>
 
                 <div class="form-group">
+                    <label>Carga horária (h)</label>
+                    <input type="number" id="cursoCargaHoraria" min="0" step="0.5" placeholder="0">
+                </div>
+
+                <div class="form-group">
                     <label>Ministrantes *</label>
                     <div id="selecionadosMinistrantes" class="selected-list"></div>
                     <div class="add-inline">
@@ -677,6 +693,11 @@
                 <div class="form-row">
                     <div class="form-group"><label>Inscritos</label><input type="number" id="editarCursoInscritos" min="0" placeholder="0"></div>
                     <div class="form-group"><label>Certificados</label><input type="number" id="editarCursoCertificados" min="0" placeholder="0"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>Carga horária (h)</label>
+                    <input type="number" id="editarCursoCargaHoraria" min="0" step="0.5" placeholder="0">
                 </div>
 
                 <div class="form-group" style="margin-top: 15px; border-top: 1px solid #e2e8f0; padding-top: 15px;">
@@ -739,23 +760,28 @@
     </div>
 
     <!-- MODAL MINISTRANTE (USADO COMO ATALHO TAMBÉM) -->
-<div class="modal-overlay" id="modalMinistrante" style="z-index: 1050;">
-    <div class="modal modal-small">
-        <div class="modal-header">
-            <h2 id="tituloModalMinistrante">Novo ministrante</h2>
-            <button type="button" class="close-button" onclick="fecharModal('modalMinistrante')">×</button>
-        </div>
-        <form id="formMinistrante">
-            <input type="hidden" id="ministranteEditId">
-            <div class="form-group"><label>Nome *</label><input type="text" id="ministranteNome" class="input-maiusculo" required></div>
-            <div class="modal-actions">
-                <button type="button" class="secondary-button" onclick="fecharModal('modalMinistrante')">Cancelar</button>
-                <button type="submit" class="primary-button">Salvar</button>
+    <div class="modal-overlay" id="modalMinistrante" style="z-index: 1050;">
+        <div class="modal modal-small">
+            <div class="modal-header">
+                <h2 id="tituloModalMinistrante">Novo ministrante</h2>
+                <button type="button" class="close-button" onclick="fecharModal('modalMinistrante')">×</button>
             </div>
-        </form>
+            <form id="formMinistrante">
+                <input type="hidden" id="ministranteEditId">
+                <div class="form-group"><label>Nome *</label><input type="text" id="ministranteNome" class="input-maiusculo" required></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Horas já realizadas no ano (manual)</label><input type="number" id="ministranteHorasManuais" min="0" step="0.5" placeholder="0"></div>
+                    <div class="form-group"><label>Limite anual (h)</label><input type="number" id="ministranteLimiteHoras" min="0" step="0.5" placeholder="120"></div>
+                </div>
+                <p id="dicaHorasAno" style="font-size:12px; color:#64748b; margin-bottom:10px;"></p>
+                <div class="modal-actions">
+                    <button type="button" class="secondary-button" onclick="fecharModal('modalMinistrante')">Cancelar</button>
+                    <button type="submit" class="primary-button">Salvar</button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
-    
+
     <div class="modal-overlay" id="modalGerencia">
         <div class="modal modal-small">
             <div class="modal-header">
@@ -837,8 +863,9 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-    <!-- Chart.js e script principal -->
+    <!-- Chart.js, gerador de Excel e script principal -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="integra.js" defer></script>
 
 </body>

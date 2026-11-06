@@ -24,19 +24,79 @@ let mesFiltroCursos = ""; let mesFiltroVisaoGeral = "";
 let comentarioEmEdicao = null;     // id do comentário que está sendo editado
 let avaliacaoEditando = null;      // avaliação do curso aberto no modal de edição
 
+/* NOVO: controle de anos e carga horária */
+let bancoCompleto = { cursos: [], ministrantes: [], gerencias: [], avaliacoes: [], comentarios: [] };
+let anoSelecionado = String(new Date().getFullYear());
+let sessaoAnoEscolhido = false;
+let idsDaVisao = new Set();
+const LIMITE_HORAS_PADRAO = 120;
+
+/* ============================================================
+   NOVO: ANOS (o sistema enxerga só o ano selecionado)
+   ============================================================ */
+
+function anoDoCurso(c) {
+    return String(c.dataInicio || c.data || "").substring(0, 4);
+}
+
+function anosFechados() { return bancoCompleto.anosFechados || []; }
+function anoEstaFechado(ano) { return anosFechados().includes(String(ano)); }
+
+/* O "banco" que o sistema usa passa a ser só o ano selecionado */
+function montarVisaoDoAno() {
+    const cursos = bancoCompleto.cursos.filter(c => anoDoCurso(c) === anoSelecionado);
+    idsDaVisao = new Set(cursos.map(c => c.id));
+    banco = {
+        cursos: cursos,
+        ministrantes: bancoCompleto.ministrantes,
+        gerencias: bancoCompleto.gerencias,
+        avaliacoes: bancoCompleto.avaliacoes.filter(a => idsDaVisao.has(a.cursoId)),
+        comentarios: bancoCompleto.comentarios.filter(c => idsDaVisao.has(c.cursoId))
+    };
+}
+
+function anosDisponiveis() {
+    const s = new Set([String(bancoCompleto.anoAtual), String(anoSelecionado)]);
+    bancoCompleto.cursos.forEach(c => { const a = anoDoCurso(c); if (a) s.add(a); });
+    anosFechados().forEach(a => s.add(String(a)));
+    return Array.from(s).sort().reverse();
+}
+
+function atualizarSeletorAno() {
+    const sel = document.getElementById("seletorAno");
+    if (sel) {
+        sel.innerHTML = anosDisponiveis().map(a => `<option value="${a}">${a}${anoEstaFechado(a) ? " 🔒" : ""}</option>`).join("");
+        sel.value = anoSelecionado;
+    }
+    const fechado = anoEstaFechado(anoSelecionado);
+    document.body.classList.toggle("ano-fechado", fechado);
+    const badge = document.getElementById("badgeAnoFechado");
+    if (badge) badge.style.display = fechado ? "inline-flex" : "none";
+    const btn = document.getElementById("btnFecharAno");
+    if (btn) btn.style.display = fechado ? "none" : "inline-block";
+}
+
+function aplicarDados(dados) {
+    bancoCompleto = dados;
+    ["cursos", "ministrantes", "gerencias", "avaliacoes", "comentarios", "anosFechados"].forEach(k => {
+        if (!bancoCompleto[k]) bancoCompleto[k] = [];
+    });
+    if (!bancoCompleto.anoAtual) bancoCompleto.anoAtual = String(new Date().getFullYear());
+    // Nomes de ministrantes sempre em MAIÚSCULO
+    bancoCompleto.ministrantes.forEach(m => { m.nome = String(m.nome || "").toUpperCase(); });
+    if (!sessaoAnoEscolhido) { anoSelecionado = String(bancoCompleto.anoAtual); sessaoAnoEscolhido = true; }
+    montarVisaoDoAno();
+    atualizarSeletorAno();
+    atualizarSistema();
+}
+
 function carregarBanco() {
     docRef.onSnapshot((doc) => {
         if (doc.exists) {
-            banco = doc.data();
-            if (!banco.cursos) banco.cursos = [];
-            if (!banco.ministrantes) banco.ministrantes = [];
-            if (!banco.gerencias) banco.gerencias = [];
-            if (!banco.avaliacoes) banco.avaliacoes = [];
-            if (!banco.comentarios) banco.comentarios = [];
-            // Nomes de ministrantes sempre em MAIÚSCULO
-            banco.ministrantes.forEach(m => { m.nome = String(m.nome || "").toUpperCase(); });
-            atualizarSistema();
+            aplicarDados(doc.data());
         } else {
+            bancoCompleto.anoAtual = String(new Date().getFullYear());
+            montarVisaoDoAno();
             salvarBanco();
         }
     }, (erro) => {
@@ -45,11 +105,151 @@ function carregarBanco() {
     });
 }
 
+function recarregarDoServidor() {
+    docRef.get({ source: "server" }).then(doc => { if (doc.exists) aplicarDados(doc.data()); });
+}
+
 function salvarBanco() {
-    docRef.set(banco).catch((error) => {
+    if (anoEstaFechado(anoSelecionado)) {
+        alert("O ano " + anoSelecionado + " está fechado e só permite consulta. Nada foi salvo.");
+        recarregarDoServidor();
+        return;
+    }
+    const estranho = banco.cursos.find(c => anoDoCurso(c) !== anoSelecionado);
+    if (estranho && anoEstaFechado(anoDoCurso(estranho))) {
+        alert("A data desse curso pertence a um ano já fechado (" + anoDoCurso(estranho) + "). Nada foi salvo.");
+        recarregarDoServidor();
+        return;
+    }
+
+    const fora = id => !idsDaVisao.has(id);
+    const completo = {
+        anoAtual: bancoCompleto.anoAtual,
+        anosFechados: bancoCompleto.anosFechados || [],
+        ministrantes: banco.ministrantes,
+        gerencias: banco.gerencias,
+        cursos: bancoCompleto.cursos.filter(c => fora(c.id)).concat(banco.cursos),
+        avaliacoes: bancoCompleto.avaliacoes.filter(a => fora(a.cursoId)).concat(banco.avaliacoes),
+        comentarios: bancoCompleto.comentarios.filter(c => fora(c.cursoId)).concat(banco.comentarios)
+    };
+
+    bancoCompleto = completo;
+    // se o curso foi salvo com data de outro ano, o sistema acompanha esse ano
+    if (estranho) anoSelecionado = anoDoCurso(estranho);
+    montarVisaoDoAno();
+    atualizarSeletorAno();
+
+    docRef.set(completo).catch((error) => {
         console.error("Erro ao salvar no Firebase: ", error);
         alert("Erro de conexão com o banco de dados.");
     });
+}
+
+/* ---------- NOVO: Fechar ano ---------- */
+function fecharAnoAtual() {
+    const ano = anoSelecionado;
+    if (anoEstaFechado(ano)) return;
+    if (!confirm(`Fechar o ano ${ano}?\n\nEle fica guardado só para consulta e o sistema começa ${Number(ano) + 1} do zero. Nada é apagado.`)) return;
+
+    const proximo = String(Number(ano) + 1);
+    bancoCompleto.anosFechados = [...anosFechados(), ano];
+    bancoCompleto.anoAtual = proximo;
+    anoSelecionado = proximo;
+    montarVisaoDoAno();
+    atualizarSeletorAno();
+    atualizarSistema();
+    docRef.set(bancoCompleto).catch(() => alert("Erro de conexão com o banco de dados."));
+}
+
+/* ---------- NOVO: Carga horária dos ministrantes ---------- */
+function dadosHorasMin(m, ano) {
+    const h = (m.horas && m.horas[ano]) || {};
+    const manual = Number(h.manual) || 0;
+    const limite = (h.limite !== undefined && h.limite !== null && h.limite !== "") ? Number(h.limite) : LIMITE_HORAS_PADRAO;
+    const doCursos = banco.cursos
+        .filter(c => anoDoCurso(c) === String(ano) && (c.ministrantes || []).includes(m.id))
+        .reduce((t, c) => t + (Number(c.cargaHoraria) || 0), 0);
+    return { manual: manual, limite: limite, doCursos: doCursos, usadas: manual + doCursos, saldo: limite - (manual + doCursos) };
+}
+
+function fmtHoras(n) {
+    return (Math.round(Number(n) * 10) / 10).toString().replace(".", ",") + " h";
+}
+
+/* ---------- NOVO: Relatório Excel (para o BI) ---------- */
+function gerarRelatorioExcel() {
+    if (typeof XLSX === "undefined") {
+        alert("Não foi possível carregar o gerador de Excel. Verifique a internet e recarregue a página.");
+        return;
+    }
+    const visaoAtual = banco;
+    banco = bancoCompleto; // usa as médias com TODOS os anos
+    try {
+        const nota = n => (n === null || n === undefined || isNaN(n)) ? "" : Number(Number(n).toFixed(2));
+        const nomeGer = id => { const g = encontrarGerencia(id); return g ? g.nome : ""; };
+        const nomeCurso = id => { const c = encontrarCurso(id); return c ? c.nome : ""; };
+        const anoCurso = id => { const c = encontrarCurso(id); return c ? anoDoCurso(c) : ""; };
+
+        const cursos = bancoCompleto.cursos.map(c => {
+            const resp = bancoCompleto.avaliacoes.filter(a => a.cursoId === c.id).reduce((t, a) => t + Number(a.respostas || 0), 0);
+            return {
+                "Ano": anoDoCurso(c),
+                "Mês": (c.dataInicio || c.data || "").substring(5, 7),
+                "Curso": c.nome,
+                "Gerência": nomeGer(c.gerenciaId),
+                "Data início": formatarData(c.dataInicio || c.data),
+                "Data fim": formatarData(c.dataFim || c.data),
+                "Carga horária (h)": Number(c.cargaHoraria) || 0,
+                "Inscritos": Number(c.inscritos) || 0,
+                "Certificados": Number(c.certificados) || 0,
+                "Respostas": resp,
+                "Nota Satisfação": nota(mediaDoCurso(c.id, "satisfacao")),
+                "Nota Ministrantes": nota(mediaDoCurso(c.id, "ministrantes")),
+                "Nota Organização": nota(mediaDoCurso(c.id, "organizacao")),
+                "Média Geral": nota(mediaGeralDoCurso(c.id)),
+                "Ministrantes": (c.ministrantes || []).map(id => { const m = encontrarMinistrante(id); return m ? m.nome : ""; }).filter(Boolean).join(", "),
+                "Observações": obterObservacoesDoCurso(c).join(" | ")
+            };
+        });
+
+        const horas = [];
+        anosDisponiveis().forEach(ano => {
+            ministrantesOrdenados().forEach(m => {
+                const h = dadosHorasMin(m, ano);
+                if (h.usadas === 0 && !(m.horas && m.horas[ano])) return;
+                horas.push({
+                    "Ano": ano, "Ministrante": m.nome,
+                    "Horas dos cursos": h.doCursos, "Horas manuais": h.manual,
+                    "Horas usadas": h.usadas, "Limite (h)": h.limite, "Saldo (h)": h.saldo
+                });
+            });
+        });
+
+        const notasMin = [];
+        bancoCompleto.avaliacoes.forEach(a => {
+            (a.ministrantes || []).forEach(i => {
+                const m = encontrarMinistrante(i.ministranteId);
+                notasMin.push({
+                    "Ano": anoCurso(a.cursoId), "Curso": nomeCurso(a.cursoId),
+                    "Ministrante": m ? m.nome : "", "Nota": nota(i.nota), "Respostas": Number(a.respostas) || 0
+                });
+            });
+        });
+
+        const comentarios = bancoCompleto.comentarios.map(c => ({
+            "Ano": anoCurso(c.cursoId), "Curso": nomeCurso(c.cursoId),
+            "Tipo": c.tipo || "Geral", "Texto": c.texto, "Data": c.data || ""
+        }));
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(cursos), "Cursos");
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(horas), "Horas dos ministrantes");
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(notasMin), "Notas por ministrante");
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(comentarios), "Comentários");
+        XLSX.writeFile(wb, "AvaliaCursos_relatorio_" + dataHojeISO() + ".xlsx");
+    } finally {
+        banco = visaoAtual;
+    }
 }
 
 function novoId() {
@@ -249,6 +449,7 @@ function abrirModalMinistrante() {
     if (form) form.reset();
     document.getElementById("ministranteEditId").value = "";
     setTexto("tituloModalMinistrante", "Novo ministrante");
+    setTexto("dicaHorasAno", "Valores referentes ao ano " + anoSelecionado + "."); // NOVO
     abrirModal("modalMinistrante");
 }
 
@@ -261,6 +462,13 @@ function editarMinistrante(id) {
     document.getElementById("ministranteEditId").value = id;
     document.getElementById("ministranteNome").value = m.nome;
     setTexto("tituloModalMinistrante", "Editar ministrante");
+
+    // NOVO: horas manuais e limite do ano selecionado
+    const hAno = (m.horas && m.horas[anoSelecionado]) || {};
+    document.getElementById("ministranteHorasManuais").value = hAno.manual || "";
+    document.getElementById("ministranteLimiteHoras").value = (hAno.limite !== undefined) ? hAno.limite : "";
+    setTexto("dicaHorasAno", "Valores referentes ao ano " + anoSelecionado + ".");
+
     abrirModal("modalMinistrante");
 }
 
@@ -631,6 +839,7 @@ function abrirEditarCurso(id) {
     document.getElementById("editarCursoInscritos").value = curso.inscritos || 0;
     document.getElementById("editarCursoCertificados").value = curso.certificados || 0;
     document.getElementById("editarCursoObservacoes").value = curso.observacao || "";
+    document.getElementById("editarCursoCargaHoraria").value = curso.cargaHoraria || ""; // NOVO
 
     ministrantesEditarCurso = [...(curso.ministrantes || [])];
     mostrarMinistrantesEditarCurso();
@@ -1198,25 +1407,27 @@ function renderizarAbaMinistrantes() {
         });
     }
 
+    /* NOVO: carga horária dos ministrantes (no lugar do ranking) */
     const rankingArea = document.getElementById("rankingMinistrantesLista");
     if (rankingArea) {
-        const listaRank = banco.ministrantes.map(m => {
-            return { id: m.id, nome: m.nome, media: mediaDoMinistrante(m.id) };
-        }).sort((a, b) => (b.media || 0) - (a.media || 0));
-
-        if (listaRank.length === 0) {
+        if (banco.ministrantes.length === 0) {
             rankingArea.innerHTML = `<div class="empty-state">Nenhum ministrante cadastrado.</div>`;
         } else {
-            rankingArea.innerHTML = listaRank.map((item, index) => `
-                <div class="ranking-item">
-                    <div class="ranking-number">${index + 1}</div>
-                    <div style="flex:1;">
-                        <strong>${escaparHTML(item.nome)}</strong>
-                        <div style="font-size: 11px; color:#64748b;">Ranking: #${index + 1}</div>
+            rankingArea.innerHTML = ministrantesOrdenados().map(m => {
+                const h = dadosHorasMin(m, anoSelecionado);
+                const pct = h.limite > 0 ? Math.min(100, (h.usadas / h.limite) * 100) : 100;
+                const classe = h.usadas > h.limite ? "excedido" : (pct >= 90 ? "alerta" : "");
+                return `
+                    <div class="ranking-item">
+                        <div style="flex:1;">
+                            <strong>${escaparHTML(m.nome)}</strong>
+                            <div class="horas-barra ${classe}"><span style="width:${pct}%"></span></div>
+                            <div class="horas-detalhe">Cursos: ${fmtHoras(h.doCursos)} + manual: ${fmtHoras(h.manual)} · Limite: ${fmtHoras(h.limite)} · Saldo: ${fmtHoras(h.saldo)}</div>
+                        </div>
+                        <div class="ranking-score">${fmtHoras(h.usadas)}</div>
                     </div>
-                    <div class="ranking-score">${formatarNota(item.media)}</div>
-                </div>
-            `).join("");
+                `;
+            }).join("");
         }
     }
 
@@ -1847,6 +2058,24 @@ document.addEventListener("DOMContentLoaded", function () {
     carregarBanco();
     iniciarMenuLateral();
 
+    /* NOVO: ano, fechar ano e relatório Excel */
+    const selAno = document.getElementById("seletorAno");
+    if (selAno) {
+        selAno.addEventListener("change", function () {
+            anoSelecionado = this.value;
+            mesFiltroCursos = "";
+            const sc = document.getElementById("seletorMesCursos");
+            if (sc) sc.value = "";
+            montarVisaoDoAno();
+            atualizarSeletorAno();
+            atualizarSistema();
+        });
+    }
+    const btnFecharAno = document.getElementById("btnFecharAno");
+    if (btnFecharAno) btnFecharAno.addEventListener("click", fecharAnoAtual);
+    const btnExcel = document.getElementById("btnRelatorioExcel");
+    if (btnExcel) btnExcel.addEventListener("click", gerarRelatorioExcel);
+
     const inputNomeMin = document.getElementById("ministranteNome");
     if (inputNomeMin) inputNomeMin.classList.add("input-maiusculo");
 
@@ -1987,6 +2216,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 ministrantes: [...ministrantesDoCurso], temMinistrante: true
             };
             if (observacao) novoCurso.observacao = observacao;
+            novoCurso.cargaHoraria = Number(document.getElementById("cursoCargaHoraria").value) || 0; // NOVO
             banco.cursos.push(novoCurso);
 
             ministrantesDoCurso = [];
@@ -2147,6 +2377,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 temMinistrante: teveMin
             };
             if (observacao) novoCurso.observacao = observacao;
+            novoCurso.cargaHoraria = Number(document.getElementById("cadCursoCargaHoraria").value) || 0; // NOVO
             banco.cursos.push(novoCurso);
 
             banco.avaliacoes.push({
@@ -2270,6 +2501,7 @@ document.addEventListener("DOMContentLoaded", function () {
             curso.ministrantes = [...ministrantesEditarCurso];
             curso.temMinistrante = ministrantesEditarCurso.length > 0;
             curso.observacao = observacoes;
+            curso.cargaHoraria = Number(document.getElementById("editarCursoCargaHoraria").value) || 0; // NOVO
 
             if (novaAv) {
                 if (av) {
@@ -2287,7 +2519,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-   /* Ministrante: cria ou edita, salvando SEMPRE em maiúsculo */
+    /* Ministrante: cria ou edita, salvando SEMPRE em maiúsculo (agora com horas do ano) */
     const formMin = document.getElementById("formMinistrante");
     if (formMin) {
         formMin.addEventListener("submit", function (e) {
@@ -2302,12 +2534,25 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
+            const manual = parseFloat(document.getElementById("ministranteHorasManuais").value);
+            const limite = parseFloat(document.getElementById("ministranteLimiteHoras").value);
+            const aplicarHoras = m => {
+                if (!m.horas) m.horas = {};
+                m.horas[anoSelecionado] = {
+                    manual: isNaN(manual) ? 0 : manual,
+                    limite: isNaN(limite) ? LIMITE_HORAS_PADRAO : limite
+                };
+            };
+
             if (editId) {
                 const m = banco.ministrantes.find(item => item.id === editId);
                 if (!m) return;
                 m.nome = nome;
+                aplicarHoras(m);
             } else {
-                banco.ministrantes.push({ id: novoId(), nome: nome });
+                const novo = { id: novoId(), nome: nome };
+                aplicarHoras(novo);
+                banco.ministrantes.push(novo);
             }
 
             salvarBanco();
@@ -2333,21 +2578,27 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-  if (btnLimpar) {
-    btnLimpar.addEventListener("click", function () {
-        if (!confirm("Tem certeza que deseja apagar TODOS os dados? Isso também apaga no banco online e não pode ser desfeito.")) return;
-        if (!confirm("Confirmação final: apagar tudo mesmo?")) return;
+       /* Limpar dados: apaga TUDO (todos os anos) */
+    const btnLimpar = document.getElementById("btnLimparDados");
+    if (btnLimpar) {
+        btnLimpar.addEventListener("click", function () {
+            if (!confirm("Tem certeza que deseja apagar TODOS os dados de TODOS os anos? Isso também apaga no banco online e não pode ser desfeito.")) return;
+            if (!confirm("Confirmação final: apagar tudo mesmo?")) return;
 
-        banco = {
-            cursos: [],
-            ministrantes: [],
-            gerencias: [],
-            avaliacoes: [],
-            comentarios: []
-        };
+            const vazio = {
+                cursos: [],
+                ministrantes: [],
+                gerencias: [],
+                avaliacoes: [],
+                comentarios: [],
+                anosFechados: [],
+                anoAtual: String(new Date().getFullYear())
+            };
 
-        salvarBanco();
-        atualizarSistema();
-    });
-}
+            sessaoAnoEscolhido = false;
+            docRef.set(vazio)
+                .then(() => aplicarDados(vazio))
+                .catch(() => alert("Erro de conexão com o banco de dados. Nada foi apagado."));
+        });
+    }
 });
